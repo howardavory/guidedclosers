@@ -94,3 +94,37 @@ export async function verify2FA(userId, code) {
 
   return { success: true, user: { id: user.id, email: user.email, role: user.role, firstName: user.firstName, lastName: user.lastName } };
 }
+
+export async function checkUserCount() {
+  const count = await prisma.user.count();
+  return count;
+}
+
+export async function bootstrapAdmin(email, password, firstName, lastName) {
+  const count = await prisma.user.count();
+  if (count > 0) {
+    return { success: false, error: 'Admin already bootstrapped' };
+  }
+
+  const passwordHash = await bcrypt.hash(password, 10);
+  const user = await prisma.user.create({
+    data: {
+      email,
+      passwordHash,
+      role: 'ADMIN',
+      firstName,
+      lastName
+    }
+  });
+
+  const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: '1d' });
+  const cookieStore = await cookies();
+  cookieStore.set('auth_token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+  });
+
+  return { success: true, user: { id: user.id, email: user.email, role: user.role, firstName: user.firstName, lastName: user.lastName } };
+}
