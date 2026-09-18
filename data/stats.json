@@ -1,0 +1,204 @@
+{
+  "totalContacts": 223,
+  "variablesPulled": 0,
+  "disqualified": 7,
+  "voicemails": 21,
+  "contractsSent": 0,
+  "dropOffs": {
+    "Intro": 2,
+    "Occupancy": 0,
+    "Condition": 0,
+    "Timeline": 0,
+    "Financials": 0,
+    "Contracting": 0
+  },
+  "logs": [
+    {
+      "time": "01:11 PM",
+      "action": "Offer Submitted",
+      "target": "Antonio Gutierrez",
+      "isSuccess": true
+    },
+    {
+      "time": "12:43 PM",
+      "action": "Left Voicemail",
+      "target": "elizabeth Ross",
+      "isNeutral": true
+    },
+    {
+      "time": "12:38 PM",
+      "action": "Left Voicemail",
+      "target": "Mc Cracken",
+      "isNeutral": true
+    },
+    {
+      "time": "12:16 PM",
+      "action": "Left Voicemail",
+      "target": "Javier Palafox",
+      "isNeutral": true
+    },
+    {
+      "time": "12:20 PM",
+      "action": "Disqualified - Hostile",
+      "target": "Sabrina Ortiz",
+      "isDisqualified": true
+    },
+    {
+      "time": "12:20 PM",
+      "action": "Left Voicemail",
+      "target": "Antonio Gutierrez",
+      "isNeutral": true
+    },
+    {
+      "time": "12:09 PM",
+      "action": "Offer Submitted",
+      "target": "Antonio Gutierrez",
+      "isSuccess": true
+    },
+    {
+      "time": "10:39 AM",
+      "action": "Disqualified - Hostile",
+      "target": "Antonio Gutierrez",
+      "isDisqualified": true
+    },
+    {
+      "time": "12:01 PM",
+      "action": "Left Voicemail",
+      "target": "Manual Lead",
+      "isNeutral": true
+    },
+    {
+      "time": "12:00 PM",
+      "action": "Left Voicemail",
+      "target": "Antonio Gutierrez",
+      "isNeutral": true
+    },
+    {
+      "time": "10:24 AM",
+      "action": "Left Voicemail",
+      "target": "Gilberto Salvador",
+      "isNeutral": true
+    },
+    {
+      "time": "10:23 PM",
+      "action": "Offer Submitted",
+      "target": "Manual Lead",
+      "isSuccess": true
+    },
+    {
+      "time": "04:55 PM",
+      "action": "Disqualified - Hostile",
+      "target": "Gilberto Salvador",
+      "isDisqualified": true
+    },
+    {
+      "time": "04:55 PM",
+      "action": "Disqualified - Hostile",
+      "target": "William Peloquin",
+      "isDisqualified": true
+    },
+    {
+      "time": "01:53 PM",
+      "action": "Left Voicemail",
+      "target": "Victorino Sanchez",
+      "isNeutral": true
+    },
+    {
+      "time": "01:30 PM",
+      "action": "Disqualified - DNC",
+      "target": "Lead",
+      "isDisqualified": true
+    },
+    {
+      "time": "02:06 PM",
+      "action": "Left Voicemail",
+      "target": "Jose Nogueda Jr",
+      "isNeutral": true
+    },
+    {
+      "time": "01:13 PM",
+      "action": "Disqualified - Not Selling",
+      "target": "Jaime Corona",
+      "isDisqualified": true
+    },
+    {
+      "time": "01:03 PM",
+      "action": "Left Voicemail",
+      "target": "Patricia Seaman",
+      "isNeutral": true
+    },
+    {
+      "time": "12:59 PM",
+      "action": "Left Voicemail",
+      "target": "Garret Brown",
+      "isNeutral": true
+    },
+    {
+      "time": "12:56 PM",
+      "action": "Left Voicemail",
+      "target": "Richard Uribe",
+      "isNeutral": true
+    },
+    {
+      "time": "12:47 PM",
+      "action": "Disqualified - In Escrow",
+      "target": "Sandeep Bhangu",
+      "isDisqualified": true
+    },
+    {
+      "time": "12:33 PM",
+      "action": "Left Voicemail",
+      "target": "Lead",
+      "isNeutral": true
+    },
+    {
+      "time": "12:28 PM",
+      "action": "Left Voicemail",
+      "target": "Lead",
+      "isNeutral": true
+    },
+    {
+      "time": "12:26 PM",
+      "action": "Left Voicemail",
+      "target": "Lead",
+      "isNeutral": true
+    },
+    {
+      "time": "12:20 PM",
+      "action": "Left Voicemail",
+      "target": "Lead",
+      "isNeutral": true
+    },
+    {
+      "time": "12:18 PM",
+      "action": "Left Voicemail",
+      "target": "Lead",
+      "isNeutral": true
+    },
+    {
+      "time": "11:59 AM",
+      "action": "Left Voicemail",
+      "target": "Lead",
+      "isNeutral": true
+    },
+    {
+      "time": "11:47 AM",
+      "action": "Left Voicemail",
+      "target": "Lead",
+      "isNeutral": true
+    },
+    {
+      "time": "11:16 AM",
+      "action": "Left Voicemail",
+      "target": "Lead",
+      "isNeutral": true
+    },
+    {
+      "time": "10:34 AM",
+      "action": "Left Voicemail",
+      "target": "Lead",
+      "isNeutral": true
+    }
+  ],
+  "offersSubmitted": 3
+}

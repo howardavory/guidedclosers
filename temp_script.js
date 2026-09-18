@@ -1,0 +1,7 @@
+const fs = require('fs'); 
+let c = fs.readFileSync('src/components/script/CallScript.jsx', 'utf-8'); 
+c = c.replace(/\"bg-\[\#00E5FF\] text-black border-black\"/g, '\"bg-[#00E5FF] text-black border-black neon-glow-cyan transform -skew-x-2\"'); 
+c = c.replace(/\"bg-red-600 text-black border-red-600\"/g, '\"bg-[#FF0055] text-white border-black neon-glow-red transform -skew-x-2\"'); 
+c = c.replace(/className=\"bg-white border border-black rounded-2xl p-6 shadow-2xl shrink-0\"/g, 'className=\"bg-white border-4 border-black rounded-sm p-6 shadow-[8px_8px_0px_#000] shrink-0 relative overflow-hidden\"'); 
+c = c.replace(/<h3 className=\"font-bangers text-lg text-black mb-4 border-b border-black pb-2\">Fast Facts<\/h3>/g, '<div className=\"absolute top-0 right-0 w-16 h-16 opacity-20 pointer-events-none\" style={{backgroundImage: \"radial-gradient(circle at 100% 0%, #000 10%, transparent 11%), radial-gradient(circle at 100% 0%, transparent 20%, #000 21%, #000 22%, transparent 23%), radial-gradient(circle at 100% 0%, transparent 40%, #000 41%, #000 42%, transparent 43%), radial-gradient(circle at 100% 0%, transparent 60%, #000 61%, #000 62%, transparent 63%), radial-gradient(circle at 100% 0%, transparent 80%, #000 81%, #000 82%, transparent 83%)\", backgroundSize: \"100% 100%\", clipPath: \"polygon(0 0, 100% 0, 100% 100%)\"}}></div><h3 className=\"font-bangers text-2xl text-black mb-4 border-b-4 border-black pb-2\">Fast Facts</h3>'); 
+fs.writeFileSync('src/components/script/CallScript.jsx', c);

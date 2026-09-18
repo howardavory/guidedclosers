@@ -1,0 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@layer base {
+  :root, [data-theme="dark"] {
+    --bg-base: #050505;
+    --card-bg: #121212;
+    --card-border: #222222;
+    --text-base: #F5F5F5;
+    --text-muted: #9CA3AF;
+  }
+
+  [data-theme="light"] {
+    --bg-base: #F4F6F9;
+    --card-bg: #FFFFFF;
+    --card-border: #CBD5E1;
+    --text-base: #0F172A;
+    --text-muted: #64748B;
+  }
+
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-base);
+    font-family: 'Josefin Sans', sans-serif;
+    min-height: 100vh;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+}
+
+@layer utilities {
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  @keyframes slideInUp {
+    0% {
+      opacity: 0;
+      transform: translateY(15px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-slideIn {
+    animation: slideInUp 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    will-change: transform, opacity;
+  }
+}

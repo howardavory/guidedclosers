@@ -1,0 +1,656 @@
+
+@[c:\Users\avory\OneDrive\Desktop\AI_Agent_Projects\3_Sales_Workflow_Agent\v3_app\src\components\script\CallScript.jsx]
+
+'use client';
+
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import useStore from '@/store/useStore';
+import { ShieldAlert, CheckCircle2, Home, Wrench, Clock, DollarSign, PenTool, Mic, MapPin, Database, ChevronDown, ChevronRight, Calculator, AlertTriangle } from 'lucide-react';
+import clsx from 'clsx';
+import CashCalculator from '../calculators/CashCalculator';
+import CreativeCalculator from '../calculators/CreativeCalculator';
+import RepairsCalculator from '../calculators/RepairsCalculator';
+import { useLoadScript, Autocomplete } from '@react-google-maps/api';
+
+const libraries = ['places'];
+
+export default function CallScript({ activeLead, onReturn }) {
+  const { updateTriageCondition, updatePropertyDetails, updateDisposition } = useStore();
+  
+  const { isLoaded } = useLoadScript({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
+    libraries
+  });
+
+  const autocompleteRef = useRef(null);
+
+  const [activePillar, setActivePillar] = useState(1);
+  const [completedPillars, setCompletedPillars] = useState([]);
+  const [activeCalc, setActiveCalc] = useState(null);
+  const [isPullingData, setIsPullingData] = useState(false);
+  
+  const [formData, setFormData] = useState({
+    manualName: '',
+    manualAddress: '',
+    // Opener
+    activeSource: 'In-House',
+    manualEntityType: 'INDIVIDUAL',
+    introResponse: null,
+    isVoicemail: false,
+    isHostile: false,
+    noPushback: false,
+    activeObjection: null,
+    offerResponse: null,
+    askingPrice: '',
+    refusedPrice: false,
+    // Property Details (Pillar 2)
+    beds: '',
+    baths: '',
+    sqft: '',
+    propertyType: '',
+    mfUnits: '',
+    hoaName: '',
+    hoaFee: '',
+    mhParkName: '',
+    mhParkFee: '',
+    landZoning: '',
+    // Occupancy
+    occupancy: '',
+    rentAmount: '',
+    vacantLength: '',
+    decisionMakers: null,
+    trustProbate: false,
+    // Condition
+    roof: [],
+    hvac: [],
+    plumbing: [],
+    electrical: [],
+    cosmetics: [],
+    fireDamage: false,
+    highRisk: [],
+    // Timeline
+    timeline: '',
+    painPoints: [],
+    // Financials
+    freeAndClear: false,
+    mortgageBalance: '',
+    arrears: '',
+    summaryNotes: '',
+    // Objections & Close
+    thinkAboutItReason: '',
+    thinkAboutItOther: '',
+    lockedPrice: '',
+    isPriceLocked: false,
+    legalName: '',
+    email: '',
+    mailingAddress: ''
+  });
+
+  const [showDisqualifyMenu, setShowDisqualifyMenu] = useState(false);
+  const [recentMessages, setRecentMessages] = useState([]);
+  const [activeObjection, setActiveObjection] = useState(null);
+
+  useEffect(() => {
+    if (activeLead?.contactId) {
+      fetch(`/api/ghl/messages?contactId=${activeLead.contactId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.messages) {
+            setRecentMessages(data.messages);
+          }
+        })
+        .catch(err => console.error('Failed to fetch messages:', err));
+    }
+  }, [activeLead]);
+
+  const updateForm = (field, value) => setFormData(prev => ({ ...prev, [field]: value }));
+  const handleToggle = (field, value) => {
+    setFormData(prev => {
+      const arr = prev[field] || [];
+      return { ...prev, [field]: arr.includes(value) ? arr.filter(v => v !== value) : [...arr, value] };
+    });
+  };
+
+  const handlePlaceChanged = () => {
+    if (autocompleteRef.current) {
+      const place = autocompleteRef.current.getPlace();
+      if (place && place.formatted_address) {
+        updateForm('manualAddress', place.formatted_address);
+      }
+    }
+  };
+
+  const pullBatchLeadsData = async () => {
+    const addressToPull = formData.manualAddress || activeLead?.address;
+    if (!addressToPull) return alert("Please enter an address first.");
+    
+    setIsPullingData(true);
+    try {
+      const res = await fetch('/api/batchleads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address: addressToPull })
+      });
+      const data = await res.json();
+      console.log("[DEBUG] API Response from /api/batchleads:", data);
+      if (data.success && data.data) {
+        setFormData(prev => ({
+          ...prev,
+          mortgageBalance: data.data.mortgageBalance?.toString() || '',
+          beds: data.data.beds?.toString() || '',
+          baths: data.data.baths?.toString() || '',
+          sqft: data.data.sqft?.toString() || '',
+        }));
+        updatePropertyDetails({
+          beds: data.data.beds,
+          baths: data.data.baths,
+          sqft: data.data.sqft,
+          arv: data.data.estimatedValue
+        });
+        alert(`Property Data Found!\nEstimated Value: $${data.data.estimatedValue}\nBeds/Baths: ${data.data.beds}/${data.data.baths}\nSqft: ${data.data.sqft}`);
+      }
+    } catch(e) {
+      alert("Error pulling property data.");
+    }
+    setIsPullingData(false);
+  };
+
+  useEffect(() => {
+    if (activeLead && activeLead.address) {
+      updateForm('manualAddress', activeLead.address);
+      if (!formData.beds) {
+        pullBatchLeadsData();
+      }
+    }
+  }, [activeLead]);
+
+  const generateSummary = () => {
+    let summary = `--- LEAD SUMMARY ---\n`;
+    summary += `Occupancy: ${formData.occupancy || 'Unknown'}\n`;
+    summary += `Asking Price: ${formData.refusedPrice ? 'REFUSED TO DISCLOSE' : (formData.askingPrice ? '$'+formData.askingPrice : 'None given')}\n`;
+    summary += `\n-- SITUATION & TIMELINE --\n`;
+    summary += `Tags: ${formData.painPoints.join(', ')}\n`;
+    summary += `Timeline Notes: ${formData.timeline}\n`;
+    summary += `\n-- FINANCIALS --\n`;
+    summary += `Free & Clear: ${formData.freeAndClear ? 'Yes' : 'No'}\n`;
+    if (!formData.freeAndClear) summary += `Mortgage Balance: $${formData.mortgageBalance} | Arrears: $${formData.arrears}\n`;
+
+    const m1 = Number((formData.mortgageBalance || '').toString().replace(/[^0-9.-]+/g,"")) || 0;
+    const arr = Number((formData.arrears || '').toString().replace(/[^0-9.-]+/g,"")) || 0;
+    const totalDebt = formData.freeAndClear ? 0 : (m1 + arr);
+    
+    summary += `\n\n--- AI NEXT STEPS STRATEGY ---\n`;
+    if (totalDebt > 0 || formData.painPoints.includes('Pre-Foreclosure')) {
+      summary += `▶ STRATEGY: High probability of Creative Finance. The seller has debt or distress constraints. Next step is to structure a Subject-To offer.\n`;
+    } else {
+      summary += `▶ STRATEGY: Cash offer is viable. Focus on closing the cash transaction.\n`;
+    }
+
+    updateForm('summaryNotes', summary);
+  };
+
+  const riskScore = useMemo(() => {
+    let score = 0;
+    if (formData.roof.includes('Tarped / Failed')) score += 10;
+    if (formData.plumbing.includes('Active Leaks')) score += 15;
+    if (formData.fireDamage) score += 40;
+    if (formData.painPoints.includes('Pre-Foreclosure')) score += 20;
+    if (formData.painPoints.includes('Squatters')) score += 15;
+    return Math.min(score, 100);
+  }, [formData.roof, formData.plumbing, formData.fireDamage, formData.painPoints]);
+
+  const showedRoofHVACReaction = useMemo(() => formData.roof.length > 0 || formData.hvac.length > 0, [formData.roof, formData.hvac]);
+  const showedPlumbingReaction = useMemo(() => formData.plumbing.length > 0 || formData.electrical.length > 0, [formData.plumbing, formData.electrical]);
+
+  const togglePillarCompletion = (e, number) => {
+    e.stopPropagation();
+    setCompletedPillars(prev => prev.includes(number) ? prev.filter(p => p !== number) : [...prev, number]);
+  };
+
+  const renderPillar = (number, title, icon, content) => {
+    const isActive = activePillar === number;
+    const isCompleted = completedPillars.includes(number);
+    
+    return (
+      <div className={clsx("mb-6 transition-all duration-300 ease-in-out border-4 border-black shadow-[8px_8px_0px_#000] overflow-hidden comic-glass", isActive ? "transform -skew-x-1 neon-glow-cyan" : isCompleted ? "opacity-90 transform skew-x-1" : "opacity-100")}>
+  const renderPillar = (number, title, icon, content) => {
+    const isActive = activePillar === number;
+    const isCompleted = completedPillars.includes(number);
+    
+    return (
+      <div className={clsx("mb-6 transition-all duration-300 ease-in-out border-4 border-black shadow-[8px_8px_0px_#000] overflow-hidden comic-glass", isActive ? "transform -skew-x-1 neon-glow-cyan" : isCompleted ? "opacity-90 transform skew-x-1" : "opacity-100")}>
+        
+          <div 
+            className={clsx("flex justify-between items-center p-5 cursor-pointer select-none border-b-4 border-black",
+              number === 1 ? "bg-[#00E5FF]" : 
+              number === 2 ? "bg-[#FFE600]" : 
+              number === 3 ? "bg-[#FF0055]" : 
+              number === 4 ? "bg-[#00FF66]" : 
+              number === 5 ? "bg-[#B400FF]" : "bg-[#FF6A00]"
+            )} 
+            onClick={() => setActivePillar(isActive ? null : number)}
+        >
+          <div className="flex items-center gap-3">
+            <div className={clsx("p-2 rounded-lg", isActive ? "bg-[#00E5FF] text-[#00E5FF]" : isCompleted ? "bg-accent-success/20 text-green-600" : "bg-white text-gray-800")}>
+              {icon}
+            </div>
+            <h3 className={clsx("font-bangers text-xl tracking-wide", isActive ? "text-black" : "text-gray-800")}>Pillar {number}: {title}</h3>
+          </div>
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={(e) => togglePillarCompletion(e, number)}
+              className={clsx("flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all", isCompleted ? "bg-accent-success/20 text-green-600 border border-accent-success/50" : "bg-white text-gray-800 border border-black hover:text-black")}
+            >
+              <CheckCircle2 size={16} /> {isCompleted ? 'Completed' : 'Mark Complete'}
+            </button>
+            {isActive ? <ChevronDown className="text-gray-800" /> : <ChevronRight className="text-gray-800" />}
+          </div>
+        </div>
+        
+        <div className={clsx("grid transition-all duration-300 ease-in-out", isActive ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")}>
+          <div className="overflow-hidden">
+            <div className="p-6 pt-0 border-t border-black mt-2">
+              {content}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const sellerFirstName = (formData.manualName || activeLead?.name || 'there').split(' ')[0];
+  const targetAddress = formData.manualAddress || activeLead?.address || 'the property';
+
+  const hasOccupancy = !!formData.occupancy;
+  const hasCondition = formData.roof.length > 0 || formData.plumbing.length > 0 || formData.hvac.length > 0;
+  const hasTimeline = !!formData.timeline;
+  const hasMotivation = formData.painPoints.length > 0;
+
+  return (
+        <div 
+          className={clsx("flex justify-between items-center p-5 cursor-pointer select-none border-b-4 border-black",
+            number === 1 ? "bg-[#00E5FF]" : 
+            number === 2 ? "bg-[#FFE600]" : 
+            number === 3 ? "bg-[#FF0055]" : 
+            number === 4 ? "bg-[#00FF66]" : 
+            number === 5 ? "bg-[#B400FF]" : "bg-[#FF6A00]"
+          )} 
+          onClick={() => setActivePillar(isActive ? null : number)}
+        >
+          <div className="flex items-center gap-3">
+            <div className={clsx("p-2 rounded-lg", isActive ? "bg-[#00E5FF] text-[#00E5FF]" : isCompleted ? "bg-accent-success/20 text-green-600" : "bg-white text-gray-800")}>
+              {icon}
+            </div>
+            <h3 className={clsx("font-bangers text-xl tracking-wide", isActive ? "text-black" : "text-gray-800")}>Pillar {number}: {title}</h3>
+          </div>
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={(e) => togglePillarCompletion(e, number)}
+              className={clsx("flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all", isCompleted ? "bg-accent-success/20 text-green-600 border border-accent-success/50" : "bg-white text-gray-800 border border-black hover:text-black")}
+            >
+              <CheckCircle2 size={16} /> {isCompleted ? 'Completed' : 'Mark Complete'}
+            </button>
+            {isActive ? <ChevronDown className="text-gray-800" /> : <ChevronRight className="text-gray-800" />}
+          </div>
+        </div>
+        
+        <div className={clsx("grid transition-all duration-300 ease-in-out", isActive ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")}>
+          <div className="overflow-hidden">
+            <div className="p-6 pt-0 border-t border-black mt-2">
+              {content}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+  const sellerFirstName = (formData.manualName || activeLead?.name || 'there').split(' ')[0];
+  const targetAddress = formData.manualAddress || activeLead?.address || 'the property';
+  const hasOccupancy = !!formData.occupancy;
+  const hasCondition = formData.roof.length > 0 || formData.plumbing.length > 0 || formData.hvac.length > 0;
+  const hasTimeline = !!formData.timeline;
+  const hasMotivation = formData.painPoints.length > 0;
+  return (
+    
+      <div className="flex h-[calc(100vh-120px)] gap-6 relative z-10">
+        
+
+      
+      {/* FLOATING HUD (Premium UI) */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 z-50 flex gap-3 pointer-events-none">
+        <div className={clsx("px-4 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all shadow-lg backdrop-blur-md", hasOccupancy ? "bg-accent-success/90 text-black shadow-green-900/50" : "bg-white/50 text-gray-800 border border-black")}>OCCUPANCY</div>
+        <div className={clsx("px-4 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all shadow-lg backdrop-blur-md", hasCondition ? "bg-accent-success/90 text-black shadow-green-900/50" : "bg-white/50 text-gray-800 border border-black")}>CONDITION</div>
+        <div className={clsx("px-4 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all shadow-lg backdrop-blur-md", hasTimeline ? "bg-accent-success/90 text-black shadow-green-900/50" : "bg-white/50 text-gray-800 border border-black")}>TIMELINE</div>
+        <div className={clsx("px-4 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all shadow-lg backdrop-blur-md", hasMotivation ? "bg-accent-success/90 text-black shadow-green-900/50" : "bg-white/50 text-gray-800 border border-black")}>MOTIVATION</div>
+      </div>
+
+      
+      {/* FLOATING HUD (Premium UI) */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 z-50 flex gap-3 pointer-events-none">
+        <div className={clsx("px-4 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all shadow-lg backdrop-blur-md", hasOccupancy ? "bg-accent-success/90 text-black shadow-green-900/50" : "bg-white/50 text-gray-800 border border-black")}>OCCUPANCY</div>
+        <div className={clsx("px-4 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all shadow-lg backdrop-blur-md", hasCondition ? "bg-accent-success/90 text-black shadow-green-900/50" : "bg-white/50 text-gray-800 border border-black")}>CONDITION</div>
+        <div className={clsx("px-4 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all shadow-lg backdrop-blur-md", hasTimeline ? "bg-accent-success/90 text-black shadow-green-900/50" : "bg-white/50 text-gray-800 border border-black")}>TIMELINE</div>
+        <div className={clsx("px-4 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all shadow-lg backdrop-blur-md", hasMotivation ? "bg-accent-success/90 text-black shadow-green-900/50" : "bg-white/50 text-gray-800 border border-black")}>MOTIVATION</div>
+      </div>
+      <div className="flex-1 overflow-y-auto pr-4 pb-32 hide-scrollbar mt-10">
+<button 
+          onClick={() => {
+            if (onReturn) onReturn();
+          }} 
+          className="mb-6 flex items-center gap-2 px-6 py-2 bg-black border-4 border-black text-white hover:text-[#FFE600] hover:bg-[#FF0055] transition-all font-bangers text-xl tracking-widest shadow-[4px_4px_0px_#00E5FF] transform -skew-x-2"
+        >
+          &larr; Return to Dispatch
+        </button>
+          {/* LEAD CONTEXT (Always Visible) */}
+          <div className="mb-6 p-5 bg-black border-4 border-black shadow-[8px_8px_0px_#FFE600] transform skew-x-1 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-full bg-[#FFE600] opacity-10 transform skew-x-12"></div>
+            <div className="grid grid-cols-2 gap-6 relative z-10">
+              <div>
+                <label className="text-sm font-bangers tracking-widest text-[#FFE600] uppercase mb-2 block drop-shadow-[1px_1px_0px_#000]">Lead Source</label>
+                <select value={formData.activeSource} onChange={e => updateForm('activeSource', e.target.value)} className="w-full bg-black/60 backdrop-blur-md border-2 border-[#FFE600] p-3 text-white font-bangers text-xl tracking-widest focus:border-[#00E5FF] outline-none cursor-pointer">
+                  <option value="In-House">In-House</option>
+                  <option value="Bold Street">Bold Street</option>
+                  <option value="Self Gen">Self Gen</option>
+                  <option value="Agent Outreach">Agent Outreach</option>
+                  <option value="PPC">PPC / Web</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-bangers tracking-widest text-[#FFE600] uppercase mb-2 block drop-shadow-[1px_1px_0px_#000]">Ownership Profile</label>
+                <select value={formData.manualEntityType} onChange={e => updateForm('manualEntityType', e.target.value)} className="w-full bg-black/60 backdrop-blur-md border-2 border-[#FFE600] p-3 text-white font-bangers text-xl tracking-widest focus:border-[#00E5FF] outline-none cursor-pointer">
+                  <option value="INDIVIDUAL">Individual</option>
+                  <option value="TRUST">Trust</option>
+                  <option value="LLC">LLC</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        {activeLead?.isManual && (
+          <div className="mb-6 p-6 bg-black border-4 border-black shadow-[8px_8px_0px_#00E5FF] transform -skew-x-1 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-full bg-[#00E5FF] opacity-10 transform -skew-x-12"></div>
+            <h4 className="text-[#00E5FF] font-bangers text-3xl tracking-widest drop-shadow-[2px_2px_0px_#000] mb-4 flex items-center gap-3 relative z-10"><MapPin size={24} className="text-[#FF0055]" /> MANUAL SUBMISSION DETAILS</h4>
+            <div className="grid grid-cols-2 gap-6 relative z-10">
+              <div>
+                <label className="text-sm font-bangers tracking-widest text-[#00E5FF] uppercase mb-2 block drop-shadow-[1px_1px_0px_#000]">Lead Name</label>
+                <input type="text" value={formData.manualName} onChange={e => updateForm('manualName', e.target.value)} className="w-full bg-black/60 backdrop-blur-md border-2 border-[#00E5FF] p-3 text-white font-bold focus:border-[#FF0055] outline-none placeholder-gray-600" placeholder="John Doe" />
+              </div>
+              <div>
+                <label className="text-sm font-bangers tracking-widest text-[#00E5FF] uppercase mb-2 block drop-shadow-[1px_1px_0px_#000]">Property Address</label>
+                <div className="flex gap-3">
+                  {isLoaded ? (
+                    <Autocomplete onLoad={(auto) => autocompleteRef.current = auto} onPlaceChanged={handlePlaceChanged} className="flex-1">
+                      <input type="text" value={formData.manualAddress} onChange={e => updateForm('manualAddress', e.target.value)} className="w-full bg-black/60 backdrop-blur-md border-2 border-[#00E5FF] p-3 text-white font-bold focus:border-[#FF0055] outline-none placeholder-gray-600" placeholder="Search Google Maps..." />
+                    </Autocomplete>
+                  ) : (
+                    <input type="text" value={formData.manualAddress} onChange={e => updateForm('manualAddress', e.target.value)} className="w-full bg-black/60 backdrop-blur-md border-2 border-[#00E5FF] p-3 text-white font-bold focus:border-[#FF0055] outline-none placeholder-gray-600" placeholder="123 Main St..." />
+                  )}
+                  <button onClick={pullBatchLeadsData} disabled={isPullingData} className="px-6 bg-[#00E5FF] text-black border-2 border-black shadow-[4px_4px_0px_#000] hover:shadow-[6px_6px_0px_#000] font-bangers tracking-widest text-xl hover:bg-[#FF0055] hover:text-white transition-all flex items-center justify-center transform skew-x-2">
+                    {isPullingData ? '...' : <Database size={20} />}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+                {/* PILLAR 1: OPENER */}
+          {/* PILLAR 1: OPENER */}
+        {renderPillar(1, "The Opener", <Mic size={20} />, (
+          <div className="flex flex-col gap-6">
+            <div className="flex gap-4">
+              <button className={clsx("px-4 py-2 rounded-full text-xs font-bold border flex items-center gap-2", formData.isVoicemail ? "bg-purple-600 text-black border-purple-600 shadow-[0_0_15px_rgba(147,51,234,0.5)]" : "bg-white text-purple-400 border-purple-500/30")} onClick={() => updateForm('isVoicemail', !formData.isVoicemail)}>Voicemail Drop</button>
+              <button className={clsx("px-4 py-2 rounded-full text-xs font-bold border flex items-center gap-2", formData.isHostile ? "bg-red-600 text-black border-red-600 shadow-[0_0_15px_rgba(220,38,38,0.5)]" : "bg-white text-red-400 border-red-500/30")} onClick={() => updateForm('isHostile', !formData.isHostile)}>Hostile Response</button>
+            </div>
+            {formData.isVoicemail && (
+              <div className="flex flex-col mb-2 animate-slideIn">
+                <span className="text-xs font-bold mb-1 tracking-wider uppercase text-purple-400">Agent (Voicemail Script)</span>
+                <div className="relative bg-black/60 backdrop-blur-md border-4 border-[#00E5FF] p-6 shadow-[6px_6px_0px_#000] text-xl font-bold text-white leading-relaxed rounded-2xl rounded-tl-none mb-6">
+                  {formData.activeSource === 'Agent Outreach' 
+                    ? `"Hey ${sellerFirstName}, this is Avory. I'm with a local investment company here in Bakersfield and we're looking for our next project. We buy cash and close quick. If you've got any hard-to-move inventory, pocket listings, or distress deals that could use an offer, give me a call back. Talk soon."`
+                    : `"Hey ${sellerFirstName || 'there'}, my name is Avory. I'm a local investor just calling about the property over on ${targetAddress}. We're actually looking to buy another one in the area and just wanted to see if you've considered selling and would be open to our cash offer. Please give me a call if you are interested. My number is 661-387-3890. Thank you and I look forward to speaking with you."`
+                  }
+                </div>
+                
+                <button 
+                  onClick={() => onReturn && onReturn({ type: 'voicemail' })} 
+                  className="w-full max-w-md relative h-20 group overflow-hidden border-4 border-black shadow-[8px_8px_0px_#000] hover:shadow-[12px_12px_0px_#000] transition-all hover:-translate-y-1 bg-black transform rotate-1 cursor-pointer flex justify-center items-center mt-4"
+                >
+                  <div className="absolute inset-0 bg-[#B400FF] transform skew-x-[-30deg] translate-x-1/2 group-hover:translate-x-1/3 transition-transform duration-500 border-l-4 border-black pointer-events-none"></div>
+                  <div className="relative z-10 flex items-center gap-3">
+                    <Mic size={24} className="text-white drop-shadow-[2px_2px_0px_#000]" />
+                    <span className="font-bangers text-3xl text-white tracking-widest drop-shadow-[3px_3px_0px_#000] group-hover:scale-110 transition-transform">
+                      LOG VOICEMAIL & RETURN
+                    </span>
+                  </div>
+                </button>
+              </div>
+            )}
+            
+                                    {!formData.isVoicemail && !formData.isHostile && (
+              <div className="flex flex-col mb-2 animate-slideIn">
+                <span className="text-xs font-bold mb-1 tracking-wider uppercase text-[#00E5FF]">Agent (Direct Opener)</span>
+                <div className="relative bg-black/60 backdrop-blur-md border-4 border-[#00E5FF] p-6 shadow-[6px_6px_0px_#000] text-xl font-bold text-white leading-relaxed rounded-2xl rounded-tl-none mb-6">
+                  {formData.activeSource === 'Agent Outreach' 
+                    ? `"Hey ${sellerFirstName}, my name is Avory with Central Valley REI. I'm an investor buying properties cash in your area. I know you're busy, so I'll keep it brief. Do you happen to have any off-market inventory or pocket listings?"`
+                    : formData.manualEntityType === 'TRUST'
+                    ? `"Hey, am I speaking with the trustee for the ${leadName}? My name is Avory, a local investor. I was calling about the property over on ${targetAddress}... have the trustees ever considered selling it?"`
+                    : formData.manualEntityType === 'LLC'
+                    ? `"Hey, am I speaking with the owner of ${leadName}? My name is Avory, a local investor. I was calling about the property over on ${targetAddress}... have you or your partners ever considered selling it?"`
+                                        : (
+                      <span>
+                        "Hey {sellerFirstName}, how are you doing today?..." <span className="text-[#FF0055] italic text-base block mt-1 mb-2">(pause, wait for validation)</span>
+                        "My name is Avory, a local investor. I was just giving you a call about {targetAddress} to see if you've considered selling and are open to a cash offer?"
+                      </span>
+                    )
+                  }
+                </div>
+              </div>
+            )}
+            
+            {!formData.isVoicemail && !formData.isHostile && formData.activeSource !== 'Agent Outreach' && (
+              <div className="p-4 bg-white border border-black rounded-xl mt-4">
+                <p className="text-xs font-bold mb-3 text-gray-800 uppercase">Seller Responses & Pushbacks (Click again to untoggle)</p>
+                <div className="flex gap-2 flex-wrap mb-2">
+                  <button className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", formData.introResponse === 'Who' ? "bg-[#00E5FF] text-black border-black neon-glow-cyan transform -skew-x-2" : "text-gray-800 border-black hover:text-black")} onClick={() => { updateForm('introResponse', formData.introResponse === 'Who' ? null : 'Who'); updateForm('activeObjection', null); }}>"Who is this?"</button>
+                  <button className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", formData.activeObjection === 'how' ? "bg-[#00E5FF] text-black border-black neon-glow-cyan transform -skew-x-2" : "text-gray-800 border-black hover:text-black")} onClick={() => { updateForm('activeObjection', formData.activeObjection === 'how' ? null : 'how'); updateForm('introResponse', null); }}>"How did you get my number?"</button>
+                  <button className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", formData.introResponse === 'No' ? "bg-[#FF0055] text-white border-black neon-glow-red transform -skew-x-2" : "text-gray-800 border-black hover:text-black")} onClick={() => { updateForm('introResponse', formData.introResponse === 'No' ? null : 'No'); updateForm('activeObjection', null); }}>Wrong Number</button>
+                  <button className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", formData.introResponse === 'NotOwner' ? "bg-[#FF0055] text-white border-black neon-glow-red transform -skew-x-2" : "text-gray-800 border-black hover:text-black")} onClick={() => { updateForm('introResponse', formData.introResponse === 'NotOwner' ? null : 'NotOwner'); updateForm('activeObjection', null); }}>Not the Owner / Sold It</button>
+                </div>
+
+                {formData.introResponse === 'Who' && (
+                  <div className="mt-4 p-4 rounded-xl border-l-4 border-black bg-white text-black text-sm leading-relaxed animate-slideIn">
+                    "Hey, my name is Avory, I'm a local investor. We're actually looking for another property in the neighborhood right now. I was just calling to see if you'd even be open to a cash offer on your property over on {targetAddress}, or if you're holding onto it?"
+                  </div>
+                )}
+                {formData.activeObjection === 'how' && (
+                  <div className="mt-4 p-4 rounded-xl border-l-4 border-black bg-white text-black text-sm leading-relaxed animate-slideIn">
+                    "I use a public records system that pairs properties with phone numbers. Since we're buying in your neighborhood, I took a shot in the dark to see if you'd be open to an offer."
+                  </div>
+                )}
+                {formData.introResponse === 'No' && (
+                  <div className="mt-4 p-4 rounded-xl border-l-4 border-red-500 bg-white text-black text-sm leading-relaxed animate-slideIn">
+                    "Ah, my apologies! Sounds like our public records must be outdated. But since I have you on the phone... do you happen to own any other real estate that you'd consider selling, or are you currently renting?"
+                  </div>
+                )}
+                {formData.introResponse === 'NotOwner' && (
+                  <div className="mt-4 p-4 rounded-xl border-l-4 border-red-500 bg-white text-black text-sm leading-relaxed animate-slideIn">
+                    "Ah, my apologies! Well, since I have you on the phone... do you happen to own any other real estate that you might consider selling, or are you currently renting?"
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {!['No', 'NotOwner'].includes(formData.introResponse) && !formData.isVoicemail && !formData.isHostile && formData.activeSource !== 'Agent Outreach' && (
+              <div className="flex flex-col mt-4 animate-slideIn">
+                <div className="p-4 bg-white/40 border border-black rounded-xl animate-slideIn">
+                  <p className="text-xs font-bold mb-3 text-gray-800 uppercase">Would they consider an offer?</p>
+                  <div className="flex gap-2 flex-wrap">
+                    <button className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", formData.offerResponse === 'Yes' ? "bg-accent-success text-black border-accent-success" : "text-black border-black hover:bg-white/10")} onClick={() => updateForm('offerResponse', formData.offerResponse === 'Yes' ? null : 'Yes')}>"Yes / Sure"</button>
+                    <button className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", formData.offerResponse === 'Price' ? "bg-[#00E5FF] text-black border-black neon-glow-cyan transform -skew-x-2" : "text-gray-800 border-black hover:text-black")} onClick={() => updateForm('offerResponse', formData.offerResponse === 'Price' ? null : 'Price')}>"Depends on the price"</button>
+                    <button className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", formData.offerResponse === 'No' ? "bg-[#FF0055] text-white border-black neon-glow-red transform -skew-x-2" : "text-gray-800 border-black hover:text-black")} onClick={() => updateForm('offerResponse', formData.offerResponse === 'No' ? null : 'No')}>"No / Not Selling"</button>
+                  </div>
+
+                  {formData.offerResponse === 'Yes' && (
+                    <div className="mt-4 p-4 rounded-xl border-l-4 border-accent-success bg-white text-black text-sm leading-relaxed animate-slideIn">
+                      "Awesome! Just to make sure we're on the same page, do you know exactly what you'd be looking to get for it, or are you just open to seeing what I can do?" <br/><br/>
+                      
+                      <div className="my-4 p-4 bg-white border border-black rounded-xl flex items-center gap-3">
+                        <label className="text-xs uppercase text-gray-800 font-bold">Asking Price:</label>
+                        <div className="relative flex-1">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-800">$</span>
+                          <input type="text" placeholder="Price or leave blank..." className="w-full bg-white border border-black rounded-lg p-2 pl-7 text-black focus:border-accent-success outline-none" value={formData.askingPrice || ''} onChange={e => updateForm('askingPrice', e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { setActivePillar(2); setCompletedPillars(prev => [...new Set([...prev, 1])]); } }} />
+                        </div>
+                        <button className={clsx("px-3 text-xs rounded border py-2 transition-colors", formData.refusedPrice ? "bg-red-600 border-red-600 text-black" : "border-black text-gray-800 hover:text-black")} onClick={() => updateForm('refusedPrice', !formData.refusedPrice)}>Refused Price</button>
+                      </div>
+
+                      {formData.askingPrice || formData.refusedPrice ? (
+                        <div className="mt-4 pt-4 border-t border-black">
+                          <p className="mb-4">
+                            {formData.refusedPrice 
+                              ? `"No worries at all, I completely understand. Usually when we buy properties, the exact number we can offer is going to depend heavily on the condition and layout. I just need to verify some basic facts about the property."`
+                              : `"Got it, $${Number((formData.askingPrice||'').toString().replace(/[^0-9.-]+/g,"")).toLocaleString() || formData.askingPrice}. For us to see if we can make that number work, it's going to depend heavily on the condition and layout. I just need to verify some basic facts about the property."`
+                            }
+                          </p>
+                          <div className="flex justify-end">
+                             <button className="px-4 py-2 bg-accent-secondary hover:bg-purple-600 transition-colors text-black rounded-lg font-bold text-sm" onClick={() => { setActivePillar(2); setCompletedPillars(prev => [...new Set([...prev, 1])]); }}>Proceed to Pillar 2 (Property) &rarr;</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="mt-4 pt-4 border-t border-black">
+                          <p className="mb-4 text-gray-800 italic">Enter a price or click Refused Price to continue...</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {formData.offerResponse === 'Price' && (
+                    <div className="mt-4 p-4 rounded-xl border-l-4 border-black bg-white text-black text-sm leading-relaxed animate-slideIn">
+                      "I hear you. The right price is everything. Usually when people say that, they already have a number in mind. What would make sense for you if we paid cash and covered all your closing costs?"
+                      <div className="mt-3 flex gap-2">
+                        <input type="number" placeholder="Their Asking Price..." className="p-2 rounded bg-white border border-black flex-1 text-black outline-none" value={formData.askingPrice} onChange={e => updateForm('askingPrice', e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { setActivePillar(2); setCompletedPillars(prev => [...new Set([...prev, 1])]); } }} />
+                        <button className={clsx("px-3 text-xs rounded border transition-colors", formData.refusedPrice ? "bg-red-600 border-red-600 text-black" : "border-black text-gray-800")} onClick={() => updateForm('refusedPrice', !formData.refusedPrice)}>Refused Price</button>
+                      </div>
+                      
+                      {formData.askingPrice || formData.refusedPrice ? (
+                        <div className="mt-4 pt-4 border-t border-black">
+                          <p className="mb-4">
+                            {formData.refusedPrice 
+                              ? `"No worries at all, I completely understand. Usually when we buy properties, the exact number we can offer is going to depend heavily on the condition and layout. I just need to verify some basic facts about the property."`
+                              : `"Got it, $${Number((formData.askingPrice||'').toString().replace(/[^0-9.-]+/g,"")).toLocaleString() || formData.askingPrice}. For us to see if we can make that number work, it's going to depend heavily on the condition and layout. I just need to verify some basic facts about the property."`
+                            }
+                          </p>
+                          <div className="flex justify-end">
+                             <button className="px-4 py-2 bg-accent-secondary hover:bg-purple-600 transition-colors text-black rounded-lg font-bold text-sm" onClick={() => { setActivePillar(2); setCompletedPillars(prev => [...new Set([...prev, 1])]); }}>Proceed to Pillar 2 (Property) &rarr;</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="mt-4 pt-4 border-t border-black">
+                          <p className="mb-4 text-gray-800 italic">Enter a price or click Refused Price to continue...</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {formData.offerResponse === 'No' && (
+                    <div className="mt-4 p-4 rounded-xl border-l-4 border-red-500 bg-white text-black text-sm leading-relaxed animate-slideIn">
+                      "I completely understand. It sounds like this is a long-term hold for you. If anything ever changes, would you be opposed to me keeping your number on file just in case?"
+                      <div className="mt-4 pt-4 border-t border-black flex justify-end">
+                         <button className="px-4 py-2 bg-red-600 hover:bg-red-500 text-black rounded-lg font-bold text-sm" onClick={() => onReturn && onReturn({ type: 'disqualified', reason: 'Not Selling' })}>Disqualify / End Call</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+
+        {/* PILLAR 2: PROPERTY DYNAMICS & OCCUPANCY */}
+        {renderPillar(2, "Property Details & Occupancy", <Home size={20} />, (
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col mb-2">
+               <span className="text-xs font-bold mb-1 tracking-wider uppercase text-[#00E5FF]">Agent</span>
+               <div className="relative bg-black/60 backdrop-blur-md border-4 border-[#00E5FF] p-6 shadow-[6px_6px_0px_#000] text-xl font-bold text-white leading-relaxed rounded-2xl rounded-tl-none mb-6">
+                 {formData.beds && formData.baths && formData.sqft 
+                   ? `"My records show this is a ${formData.beds} bed, ${formData.baths} bath, and roughly ${Number(formData.sqft).toLocaleString()} square feet. Is that correct, or have you guys added on to it at all?"`
+                   : `"Just to make sure I have the basic facts down... what is the current bedroom and bathroom count, and roughly how many square feet is it?"`
+                 }
+               </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+               <div>
+                 <label className="text-xs text-gray-800 uppercase block mb-1">Beds</label>
+                 <input type="number" value={formData.beds} onChange={e => updateForm('beds', e.target.value)} className="w-full bg-white border border-black rounded-lg p-3 text-black focus:border-black outline-none" />
+               </div>
+               <div>
+                 <label className="text-xs text-gray-800 uppercase block mb-1">Baths</label>
+                 <input type="number" value={formData.baths} onChange={e => updateForm('baths', e.target.value)} className="w-full bg-white border border-black rounded-lg p-3 text-black focus:border-black outline-none" />
+               </div>
+               <div>
+                 <label className="text-xs text-gray-800 uppercase block mb-1">Sqft</label>
+                 <input type="number" value={formData.sqft} onChange={e => updateForm('sqft', e.target.value)} className="w-full bg-white border border-black rounded-lg p-3 text-black focus:border-black outline-none" />
+               </div>
+            </div>
+
+            <div>
+              <label className="text-xs text-gray-800 uppercase block mb-2">Property Type</label>
+              <div className="flex flex-wrap gap-2">
+                {['Single Family', 'Multi-Family', 'Condo/Townhome', 'Mobile Home', 'Land'].map(type => (
+                  <button key={type} onClick={() => updateForm('propertyType', formData.propertyType === type ? '' : type)} className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", formData.propertyType === type ? "bg-[#00E5FF] text-black border-black neon-glow-cyan transform -skew-x-2" : "bg-black/60 text-white border-[#00E5FF] hover:bg-white/20")}>{type}</button>
+                ))}
+              </div>
+            </div>
+
+            {/* Property Dynamics Inputs */}
+            {formData.propertyType === 'Multi-Family' && (
+              <div className="p-4 bg-white border border-black rounded-xl animate-slideIn">
+                <p className="text-sm text-black mb-2">"We love buying multi-family properties. How many units is it, and what's the bed and bath configuration?"</p>
+                <div className="flex gap-2">
+                  <input type="number" placeholder="Number of Units..." value={formData.mfUnits} onChange={e => updateForm('mfUnits', e.target.value)} className="flex-1 bg-white border border-black rounded-lg p-2 text-black outline-none" />
+                  <input type="text" placeholder="Config (e.g. 4 units - 2b/1b)..." value={formData.mfConfig} onChange={e => updateForm('mfConfig', e.target.value)} className="flex-1 bg-white border border-black rounded-lg p-2 text-black outline-none" />
+                </div>
+              </div>
+            )}
+
+            {formData.propertyType === 'Condo/Townhome' && (
+              <div className="p-4 bg-white border border-black rounded-xl animate-slideIn">
+                <p className="text-sm text-black mb-2">"Condos are great. Usually, the biggest hurdle for us are the HOA rules. What's the name of the HOA, what's the monthly fee, and do they have any rental restrictions?"</p>
+                <div className="flex gap-2 mb-2">
+                  <input type="text" placeholder="HOA Name..." value={formData.hoaName} onChange={e => updateForm('hoaName', e.target.value)} className="flex-1 bg-white border border-black rounded-lg p-2 text-black outline-none" />
+                  <input type="text" placeholder="HOA Fee / Mo ($)..." value={formData.hoaFee} onChange={e => updateForm('hoaFee', e.target.value)} className="flex-1 bg-white border border-black rounded-lg p-2 text-black outline-none" />
+                </div>
+                <input type="text" placeholder="Any Rental Restrictions?" value={formData.hoaRestrictions} onChange={e => updateForm('hoaRestrictions', e.target.value)} className="w-full bg-white border border-black rounded-lg p-2 text-black outline-none" />
+              </div>
+            )}
+
+            {formData.propertyType === 'Mobile Home' && (
+              <div className="p-4 bg-white border border-black rounded-xl animate-slideIn">
+                <p className="text-sm text-black mb-2">"Mobile homes are great. Is it located inside a park, and if so, what's the space rent?"</p>
+                <div className="flex gap-2 mb-2">
+                  <input type="text" placeholder="Park Name / Location..." value={formData.mhParkName} onChange={e => updateForm('mhParkName', e.target.value)} className="flex-1 bg-white border border-black rounded-lg p-2 text-black outline-none" />
+                  <input type="text" placeholder="Space Rent / Fee ($)..." value={formData.mhParkFee} onChange={e => updateForm('mhParkFee', e.target.value)} className="flex-1 bg-white border border-black rounded-lg p-2 text-black outline-none" />
+                </div>
+                <div className="flex gap-2">
+                  <button className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", formData.mh55Plus ? "bg-[#00E5FF] text-black border-black neon-glow-cyan transform -skew-x-2" : "bg-black/60 text-white border-[#00E5FF] hover:bg-white/20")} onClick={() => updateForm('mh55Plus', !formData.mh55Plus)}>55+ Community</button>
+                  <button className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", formData.mh433A ? "bg-[#00E5FF] text-black border-black neon-glow-cyan transform -skew-x-2" : "bg-black/60 text-white border-[#00E5FF] hover:bg-white/20")} onClick={() => updateForm('mh433A', !formData.mh433A)}>433A (Perm Foundation)</button>
+                </div>
+              </div>
+            )}
+
+            {formData.propertyType === 'Land' && (
+              <div className="p-4 bg-white border border-black rounded-xl animate-slideIn">
+                <p className="text-sm text-black mb-2">"Gotcha. For vacant land, the most important things we look at are utilities and zoning. Do you know what it's currently zoned for, and does it have city water and sewer?"</p>
+                <input type="text" placeholder="Current Zoning (e.g. R1, Ag)..." value={formData.landZoning} onChange={e => updateForm('landZoning', e.target.value)} className="w-full bg-black/40 backdrop-blur-md border-2 border-[#00E5FF] rounded-lg p-2 text-white outline-none mb-2 placeholder-gray-400" />
+                <div className="flex gap-2 mb-2 flex-wrap">
+                  {['Water', 'Sewer', 'Electric', 'Well/Septic'].map(util => {
+                    const isSelected = formData.landUtilities?.includes(util);
+                    return (
+                      <button key={util} className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", isSelected ? "bg-[#00E5FF] text-black border-black neon-glow-cyan transform -skew-x-2" : "bg-black/60 text-white border-[#00E5FF] hover:bg-white/20")} onClick={() => {
+                        const current = formData.landUtilities || [];
+                        updateForm('landUtilities', isSelected ? current.filter(u => u !== util) : [...current, util]);
+                      }}>{util}</button>
+                    )
+              
+<truncated 56623 bytes>
+
+NOTE: The output was truncated because it was too long. Use a more targeted query or a smaller range to get the information you need.

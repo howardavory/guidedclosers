@@ -1,0 +1,609 @@
+Created At: 2026-06-17T19:01:55Z
+Completed At: 2026-06-17T19:03:14Z
+The following changes were made by the multi_replace_file_content tool to: C:\Users\avory\OneDrive\Desktop\AI_Agent_Projects\3_Sales_Workflow_Agent\v3_app\src\components\script\CallScript.jsx. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -237,40 +237,58 @@
+             {isActive ? <ChevronDown className="text-gray-800" /> : <ChevronRight className="text-gray-800" />}
+           </div>
+         </div>
+-        
+-        <div className={clsx("grid transition-all duration-300 ease-in-out", isActive ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")}>
+-          <div className="overflow-hidden">
+-            <div className="p-6 pt-0 border-t border-black mt-2">
+-              {content}
+-            </div>
+-          </div>
+-        </div>
+-      </div>
+-    );
+-  };
+-
+-  const sellerFirstName = (formData.manualName || activeLead?.name || 'there').split(' ')[0];
+-  const targetAddress = formData.manualAddress || activeLead?.address || 'the property';
+-
+-  const hasOccupancy = !!formData.occupancy;
+-  const hasCondition = formData.roof.length > 0 || formData.plumbing.length > 0 || formData.hvac.length > 0;
+-  const hasTimeline = !!formData.timeline;
+-  const hasMotivation = formData.painPoints.length > 0;
+-
+-  return (
++            onClick={() => setActivePillar(isActive ? null : number)}
++        >
++          <div className="flex items-center gap-3">
++            <div className={clsx("p-2 rounded-lg", isActive ? "bg-[#00E5FF] text-[#00E5FF]" : isCompleted ? "bg-accent-success/20 text-green-600" : "bg-white text-gray-800")}>
++              {icon}
++            </div>
++            <h3 className={clsx("font-bangers text-xl tracking-wide", isActive ? "text-black" : "text-gray-800")}>Pillar {number}: {title}</h3>
++          </div>
++          <div className="flex items-center gap-4">
++            <button 
++              onClick={(e) => togglePillarCompletion(e, number)}
++              className={clsx("flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all", isCompleted ? "bg-accent-success/20 text-green-600 border border-accent-success/50" : "bg-white text-gray-800 border border-black hover:text-black")}
++            >
++              <CheckCircle2 size={16} /> {isCompleted ? 'Completed' : 'Mark Complete'}
++            </button>
++            {isActive ? <ChevronDown className="text-gray-800" /> : <ChevronRight className="text-gray-800" />}
++          </div>
++        </div>
++        
++        <div className={clsx("grid transition-all duration-300 ease-in-out", isActive ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")}>
++          <div className="overflow-hidden">
++            <div className="p-6 pt-0 border-t border-black mt-2">
++              {content}
++            </div>
++          </div>
++        </div>
++      </div>
++    );
++  };
++
++  const sellerFirstName = (formData.manualName || activeLead?.name || 'there').split(' ')[0];
++  const targetAddress = formData.manualAddress || activeLead?.address || 'the property';
++
++  const hasOccupancy = !!formData.occupancy;
++  const hasCondition = formData.roof.length > 0 || formData.plumbing.length > 0 || formData.hvac.length > 0;
++  const hasTimeline = !!formData.timeline;
++  const hasMotivation = formData.painPoints.length > 0;
++
++  return (
+     
+       <div className="flex h-[calc(100vh-120px)] gap-6 relative z-10">
+         
+-
+-      
+-      {/* FLOATING HUD (Premium UI) */}
+-      <div className="absolute top-0 left-1/2 -translate-x-1/2 z-50 flex gap-3 pointer-events-none">
+-        <div className={clsx("px-4 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all shadow-lg backdrop-blur-md", hasOccupancy ? "bg-accent-success/90 text-black shadow-green-900/50" : "bg-white/50 text-gray-800 border border-black")}>OCCUPANCY</div>
+-        <div className={clsx("px-4 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all shadow-lg backdrop-blur-md", hasCondition ? "bg-accent-success/90 text-black shadow-green-900/50" : "bg-white/50 text-gray-800 border border-black")}>CONDITION</div>
+-        <div className={clsx("px-4 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all shadow-lg backdrop-blur-md", hasTimeline ? "bg-accent-success/90 text-black shadow-green-900/50" : "bg-white/50 text-gray-800 border border-black")}>TIMELINE</div>
+-        <div className={clsx("px-4 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all shadow-lg backdrop-blur-md", hasMotivation ? "bg-accent-success/90 text-black shadow-green-900/50" : "bg-white/50 text-gray-800 border border-black")}>MOTIVATION</div>
+-      </div>
+-
++
++      
++      {/* FLOATING HUD (Premium UI) */}
++      <div className="absolute top-0 left-1/2 -translate-x-1/2 z-50 flex gap-3 pointer-events-none">
++        <div className={clsx("px-4 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all shadow-lg backdrop-blur-md", hasOccupancy ? "bg-accent-success/90 text-black shadow-green-900/50" : "bg-white/50 text-gray-800 border border-black")}>OCCUPANCY</div>
++        <div className={clsx("px-4 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all shadow-lg backdrop-blur-md", hasCondition ? "bg-accent-success/90 text-black shadow-green-900/50" : "bg-white/50 text-gray-800 border border-black")}>CONDITION</div>
++        <div className={clsx("px-4 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all shadow-lg backdrop-blur-md", hasTimeline ? "bg-accent-success/90 text-black shadow-green-900/50" : "bg-white/50 text-gray-800 border border-black")}>TIMELINE</div>
++        <div className={clsx("px-4 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all shadow-lg backdrop-blur-md", hasMotivation ? "bg-accent-success/90 text-black shadow-green-900/50" : "bg-white/50 text-gray-800 border border-black")}>MOTIVATION</div>
++      </div>
++
+       <div className="flex-1 overflow-y-auto pr-4 pb-32 hide-scrollbar mt-10">
+ <button 
+           onClick={() => {
+@@ -388,649 +388,6 @@
+               </div>
+             )}
+             
+-            {!formData.isVoicemail && !formData.isHostile && formData.activeSource !== 'Agent Outreach' && (
+-              <div className="p-4 bg-white border border-black rounded-xl mt-4">
+-                <p className="text-xs font-bold mb-3 text-gray-800 uppercase">Seller Responses & Pushbacks (Click again to untoggle)</p>
+-                <div className="flex gap-2 flex-wrap mb-2">
+-                  <button className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", formData.introResponse === 'Who' ? "bg-[#00E5FF] text-black border-black neon-glow-cyan transform -skew-x-2" : "text-gray-800 border-black hover:text-black")} onClick={() => { updateForm('introResponse', formData.introResponse === 'Who' ? null : 'Who'); updateForm('activeObjection', null); }}>"Who is this?"</button>
+-                  <button className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", formData.activeObjection === 'how' ? "bg-[#00E5FF] text-black border-black neon-glow-cyan transform -skew-x-2" : "text-gray-800 border-black hover:text-black")} onClick={() => { updateForm('activeObjection', formData.activeObjection === 'how' ? null : 'how'); updateForm('introResponse', null); }}>"How did you get my number?"</button>
+-                  <button className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", formData.introResponse === 'No' ? "bg-[#FF0055] text-white border-black neon-glow-red transform -skew-x-2" : "text-gray-800 border-black hover:text-black")} onClick={() => { updateForm('introResponse', formData.introResponse === 'No' ? null : 'No'); updateForm('activeObjection', null); }}>Wrong Number</button>
+-                  <button className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", formData.introResponse === 'NotOwner' ? "bg-[#FF0055] text-white border-black neon-glow-red transform -skew-x-2" : "text-gray-800 border-black hover:text-black")} onClick={() => { updateForm('introResponse', formData.introResponse === 'NotOwner' ? null : 'NotOwner'); updateForm('activeObjection', null); }}>Not the Owner / Sold It</button>
+-                </div>
+-
+-                {formData.introResponse === 'Who' && (
+-                  <div className="mt-4 p-4 rounded-xl border-l-4 border-black bg-white text-black text-sm leading-relaxed animate-slideIn">
+-                    "Hey, my name is Avory, I'm a local investor. We're actually looking for another property in the neighborhood right now. I was just calling to see if you'd even be open to a cash offer on your property over on {targetAddress}, or if you're holding onto it?"
+-                  </div>
+-                )}
+-                {formData.activeObjection === 'how' && (
+-                  <div className="mt-4 p-4 rounded-xl border-l-4 border-black bg-white text-black text-sm leading-relaxed animate-slideIn">
+-                    "I use a public records system that pairs properties with phone numbers. Since we're buying in your neighborhood, I took a shot in the dark to see if you'd be open to an offer."
+-                  </div>
+-                )}
+-                {formData.introResponse === 'No' && (
+-                  <div className="mt-4 p-4 rounded-xl border-l-4 border-red-500 bg-white text-black text-sm leading-relaxed animate-slideIn">
+-                    "Ah, my apologies! Sounds like our public records must be outdated. But since I have you on the phone... do you happen to own any other real estate that you'd consider selling, or are you currently renting?"
+-                  </div>
+-                )}
+-                {formData.introResponse === 'NotOwner' && (
+-                  <div className="mt-4 p-4 rounded-xl border-l-4 border-red-500 bg-white text-black text-sm leading-relaxed animate-slideIn">
+-                    "Ah, my apologies! Well, since I have you on the phone... do you happen to own any other real estate that you might consider selling, or are you currently renting?"
+-                  </div>
+-                )}
+-              </div>
+-            )}
+-            
+-            {!['No', 'NotOwner'].includes(formData.introResponse) && !formData.isVoicemail && !formData.isHostile && formData.activeSource !== 'Agent Outreach' && (
+-              <div className="flex flex-col mt-4 animate-slideIn">
+-                <div className="p-4 bg-white/40 border border-black rounded-xl animate-slideIn">
+-                  <p className="text-xs font-bold mb-3 text-gray-800 uppercase">Would they consider an offer?</p>
+-                  <div className="flex gap-2 flex-wrap">
+-                    <button className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", formData.offerResponse === 'Yes' ? "bg-accent-success text-black border-accent-success" : "text-black border-black hover:bg-white/10")} onClick={() => updateForm('offerResponse', formData.offerResponse === 'Yes' ? null : 'Yes')}>"Yes / Sure"</button>
+-                    <button className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", formData.offerResponse === 'Price' ? "bg-[#00E5FF] text-black border-black neon-glow-cyan transform -skew-x-2" : "text-gray-800 border-black hover:text-black")} onClick={() => updateForm('offerResponse', formData.offerResponse === 'Price' ? null : 'Price')}>"Depends on the price"</button>
+-                    <button className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", formData.offerResponse === 'No' ? "bg-[#FF0055] text-white border-black neon-glow-red transform -skew-x-2" : "text-gray-800 border-black hover:text-black")} onClick={() => updateForm('offerResponse', formData.offerResponse === 'No' ? null : 'No')}>"No / Not Selling"</button>
+-                  </div>
+-
+-                  {formData.offerResponse === 'Yes' && (
+-                    <div className="mt-4 p-4 rounded-xl border-l-4 border-accent-success bg-white text-black text-sm leading-relaxed animate-slideIn">
+-                      "Awesome! Just to make sure we're on the same page, do you know exactly what you'd be looking to get for it, or are you just open to seeing what I can do?" <br/><br/>
+-                      
+-                      <div className="my-4 p-4 bg-white border border-black rounded-xl flex items-center gap-3">
+-                        <label className="text-xs uppercase text-gray-800 font-bold">Asking Price:</label>
+-                        <div className="relative flex-1">
+-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-800">$</span>
+-                          <input type="text" placeholder="Price or leave blank..." className="w-full bg-white border border-black rounded-lg p-2 pl-7 text-black focus:border-accent-success outline-none" value={formData.askingPrice || ''} onChange={e => updateForm('askingPrice', e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { setActivePillar(2); setCompletedPillars(prev => [...new Set([...prev, 1])]); } }} />
+-                        </div>
+-                        <button className={clsx("px-3 text-xs rounded border py-2 transition-colors", formData.refusedPrice ? "bg-red-600 border-red-600 text-black" : "border-black text-gray-800 hover:text-black")} onClick={() => updateForm('refusedPrice', !formData.refusedPrice)}>Refused Price</button>
+-                      </div>
+-
+-                      {formData.askingPrice || formData.refusedPrice ? (
+-                        <div className="mt-4 pt-4 border-t border-black">
+-                          <p className="mb-4">
+-                            {formData.refusedPrice 
+-                              ? `"No worries at all, I completely understand. Usually when we buy properties, the exact number we can offer is going to depend heavily on the condition and layout. I just need to verify some basic facts about the property."`
+-                              : `"Got it, $${Number((formData.askingPrice||'').toString().replace(/[^0-9.-]+/g,"")).toLocaleString() || formData.askingPrice}. For us to see if we can make that number work, it's going to depend heavily on the condition and layout. I just need to verify some basic facts about the property."`
+-                            }
+-                          </p>
+-                          <div className="flex justify-end">
+-                             <button className="px-4 py-2 bg-accent-secondary hover:bg-purple-600 transition-colors text-black rounded-lg font-bold text-sm" onClick={() => { setActivePillar(2); setCompletedPillars(prev => [...new Set([...prev, 1])]); }}>Proceed to Pillar 2 (Property) &rarr;</button>
+-                          </div>
+-                        </div>
+-                      ) : (
+-                        <div className="mt-4 pt-4 border-t border-black">
+-                          <p className="mb-4 text-gray-800 italic">Enter a price or click Refused Price to continue...</p>
+-                        </div>
+-                      )}
+-                    </div>
+-                  )}
+-
+-                  {formData.offerResponse === 'Price' && (
+-                    <div className="mt-4 p-4 rounded-xl border-l-4 border-black bg-white text-black text-sm leading-relaxed animate-slideIn">
+-                      "I hear you. The right price is everything. Usually when people say that, they already have a number in mind. What would make sense for you if we paid cash and covered all your closing costs?"
+-                      <div className="mt-3 flex gap-2">
+-                        <input type="number" placeholder="Their Asking Price..." className="p-2 rounded bg-white border border-black flex-1 text-black outline-none" value={formData.askingPrice} onChange={e => updateForm('askingPrice', e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { setActivePillar(2); setCompletedPillars(prev => [...new Set([...prev, 1])]); } }} />
+-                        <button className={clsx("px-3 text-xs rounded border transition-colors", formData.refusedPrice ? "bg-red-600 border-red-600 text-black" : "border-black text-gray-800")} onClick={() => updateForm('refusedPrice', !formData.refusedPrice)}>Refused Price</button>
+-                      </div>
+-                      
+-                      {formData.askingPrice || formData.refusedPrice ? (
+-                        <div className="mt-4 pt-4 border-t border-black">
+-                          <p className="mb-4">
+-                            {formData.refusedPrice 
+-                              ? `"No worries at all, I completely understand. Usually when we buy properties, the exact number we can offer is going to depend heavily on the condition and layout. I just need to verify some basic facts about the property."`
+-                              : `"Got it, $${Number((formData.askingPrice||'').toString().replace(/[^0-9.-]+/g,"")).toLocaleString() || formData.askingPrice}. For us to see if we can make that number work, it's going to depend heavily on the condition and layout. I just need to verify some basic facts about the property."`
+-                            }
+-                          </p>
+-                          <div className="flex justify-end">
+-                             <button className="px-4 py-2 bg-accent-secondary hover:bg-purple-600 transition-colors text-black rounded-lg font-bold text-sm" onClick={() => { setActivePillar(2); setCompletedPillars(prev => [...new Set([...prev, 1])]); }}>Proceed to Pillar 2 (Property) &rarr;</button>
+-                          </div>
+-                        </div>
+-                      ) : (
+-                        <div className="mt-4 pt-4 border-t border-black">
+-                          <p className="mb-4 text-gray-800 italic">Enter a price or click Refused Price to continue...</p>
+-                        </div>
+-                      )}
+-                    </div>
+-                  )}
+-
+-                  {formData.offerResponse === 'No' && (
+-                    <div className="mt-4 p-4 rounded-xl border-l-4 border-red-500 bg-white text-black text-sm leading-relaxed animate-slideIn">
+-                      "I completely understand. It sounds like this is a long-term hold for you. If anything ever changes, would you be opposed to me keeping your number on file just in case?"
+-                      <div className="mt-4 pt-4 border-t border-black flex justify-end">
+-                         <button className="px-4 py-2 bg-red-600 hover:bg-red-500 text-black rounded-lg font-bold text-sm" onClick={() => onReturn && onReturn({ type: 'disqualified', reason: 'Not Selling' })}>Disqualify / End Call</button>
+-                      </div>
+-                    </div>
+-                  )}
+-                </div>
+-              </div>
+-            )}
+-          </div>
+-        ))}
+-
+-        {/* PILLAR 2: PROPERTY DYNAMICS & OCCUPANCY */}
+-        {renderPillar(2, "Property Details & Occupancy", <Home size={20} />, (
+-          <div className="flex flex-col gap-6">
+-            <div className="flex flex-col mb-2">
+-               <span className="text-xs font-bold mb-1 tracking-wider uppercase text-[#00E5FF]">Agent</span>
+-               <div className="relative bg-black/60 backdrop-blur-md border-4 border-[#00E5FF] p-6 shadow-[6px_6px_0px_#000] text-xl font-bold text-white leading-relaxed rounded-2xl rounded-tl-none mb-6">
+-                 {formData.beds && formData.baths && formData.sqft 
+-                   ? `"My records show this is a ${formData.beds} bed, ${formData.baths} bath, and roughly ${Number(formData.sqft).toLocaleString()} square feet. Is that correct, or have you guys added on to it at all?"`
+-                   : `"Just to make sure I have the basic facts down... what is the current bedroom and bathroom count, and roughly how many square feet is it?"`
+-                 }
+-               </div>
+-            </div>
+-
+-            <div className="grid grid-cols-3 gap-4">
+-               <div>
+-                 <label className="text-xs text-gray-800 uppercase block mb-1">Beds</label>
+-                 <input type="number" value={formData.beds} onChange={e => updateForm('beds', e.target.value)} className="w-full bg-white border border-black rounded-lg p-3 text-black focus:border-black outline-none" />
+-               </div>
+-               <div>
+-                 <label className="text-xs text-gray-800 uppercase block mb-1">Baths</label>
+-                 <input type="number" value={formData.baths} onChange={e => updateForm('baths', e.target.value)} className="w-full bg-white border border-black rounded-lg p-3 text-black focus:border-black outline-none" />
+-               </div>
+-               <div>
+-                 <label className="text-xs text-gray-800 uppercase block mb-1">Sqft</label>
+-                 <input type="number" value={formData.sqft} onChange={e => updateForm('sqft', e.target.value)} className="w-full bg-white border border-black rounded-lg p-3 text-black focus:border-black outline-none" />
+-               </div>
+-            </div>
+-
+-            <div>
+-              <label className="text-xs text-gray-800 uppercase block mb-2">Property Type</label>
+-              <div className="flex flex-wrap gap-2">
+-                {['Single Family', 'Multi-Family', 'Condo/Townhome', 'Mobile Home', 'Land'].map(type => (
+-                  <button key={type} onClick={() => updateForm('propertyType', formData.propertyType === type ? '' : type)} className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", formData.propertyType === type ? "bg-[#00E5FF] text-black border-black neon-glow-cyan transform -skew-x-2" : "bg-black/60 text-white border-[#00E5FF] hover:bg-white/20")}>{type}</button>
+-                ))}
+-              </div>
+-            </div>
+-
+-            {/* Property Dynamics Inputs */}
+-            {formData.propertyType === 'Multi-Family' && (
+-              <div className="p-4 bg-white border border-black rounded-xl animate-slideIn">
+-                <p className="text-sm text-black mb-2">"We love buying multi-family properties. How many units is it, and what's the bed and bath configuration?"</p>
+-                <div className="flex gap-2">
+-                  <input type="number" placeholder="Number of Units..." value={formData.mfUnits} onChange={e => updateForm('mfUnits', e.target.value)} className="flex-1 bg-white border border-black rounded-lg p-2 text-black outline-none" />
+-                  <input type="text" placeholder="Config (e.g. 4 units - 2b/1b)..." value={formData.mfConfig} onChange={e => updateForm('mfConfig', e.target.value)} className="flex-1 bg-white border border-black rounded-lg p-2 text-black outline-none" />
+-                </div>
+-              </div>
+-            )}
+-
+-            {formData.propertyType === 'Condo/Townhome' && (
+-              <div className="p-4 bg-white border border-black rounded-xl animate-slideIn">
+-                <p className="text-sm text-black mb-2">"Condos are great. Usually, the biggest hurdle for us are the HOA rules. What's the name of the HOA, what's the monthly fee, and do they have any rental restrictions?"</p>
+-                <div className="flex gap-2 mb-2">
+-                  <input type="text" placeholder="HOA Name..." value={formData.hoaName} onChange={e => updateForm('hoaName', e.target.value)} className="flex-1 bg-white border border-black rounded-lg p-2 text-black outline-none" />
+-                  <input type="text" placeholder="HOA Fee / Mo ($)..." value={formData.hoaFee} onChange={e => updateForm('hoaFee', e.target.value)} className="flex-1 bg-white border border-black rounded-lg p-2 text-black outline-none" />
+-                </div>
+-                <input type="text" placeholder="Any Rental Restrictions?" value={formData.hoaRestrictions} onChange={e => updateForm('hoaRestrictions', e.target.value)} className="w-full bg-white border border-black rounded-lg p-2 text-black outline-none" />
+-              </div>
+-            )}
+-
+-            {formData.propertyType === 'Mobile Home' && (
+-              <div className="p-4 bg-white border border-black rounded-xl animate-slideIn">
+-                <p className="text-sm text-black mb-2">"Mobile homes are great. Is it located inside a park, and if so, what's the space rent?"</p>
+-                <div className="flex gap-2 mb-2">
+-                  <input type="text" placeholder="Park Name / Location..." value={formData.mhParkName} onChange={e => updateForm('mhParkName', e.target.value)} className="flex-1 bg-white border border-black rounded-lg p-2 text-black outline-none" />
+-                  <input type="text" placeholder="Space Rent / Fee ($)..." value={formData.mhParkFee} onChange={e => updateForm('mhParkFee', e.target.value)} className="flex-1 bg-white border border-black rounded-lg p-2 text-black outline-none" />
+-                </div>
+-                <div className="flex gap-2">
+-                  <button className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", formData.mh55Plus ? "bg-[#00E5FF] text-black border-black neon-glow-cyan transform -skew-x-2" : "bg-black/60 text-white border-[#00E5FF] hover:bg-white/20")} onClick={() => updateForm('mh55Plus', !formData.mh55Plus)}>55+ Community</button>
+-                  <button className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", formData.mh433A ? "bg-[#00E5FF] text-black border-black neon-glow-cyan transform -skew-x-2" : "bg-black/60 text-white border-[#00E5FF] hover:bg-white/20")} onClick={() => updateForm('mh433A', !formData.mh433A)}>433A (Perm Foundation)</button>
+-                </div>
+-              </div>
+-            )}
+-
+-            {formData.propertyType === 'Land' && (
+-              <div className="p-4 bg-white border border-black rounded-xl animate-slideIn">
+-                <p className="text-sm text-black mb-2">"Gotcha. For vacant land, the most important things we look at are utilities and zoning. Do you know what it's currently zoned for, and does it have city water and sewer?"</p>
+-                <input type="text" placeholder="Current Zoning (e.g. R1, Ag)..." value={formData.landZoning} onChange={e => updateForm('landZoning', e.target.value)} className="w-full bg-black/40 backdrop-blur-md border-2 border-[#00E5FF] rounded-lg p-2 text-white outline-none mb-2 placeholder-gray-400" />
+-                <div className="flex gap-2 mb-2 flex-wrap">
+-                  {['Water', 'Sewer', 'Electric', 'Well/Septic'].map(util => {
+-                    const isSelected = formData.landUtilities?.includes(util);
+-                    return (
+-                      <button key={util} className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", isSelected ? "bg-[#00E5FF] text-black border-black neon-glow-cyan transform -skew-x-2" : "bg-black/60 text-white border-[#00E5FF] hover:bg-white/20")} onClick={() => {
+-                        const current = formData.landUtilities || [];
+-                        updateForm('landUtilities', isSelected ? current.filter(u => u !== util) : [...current, util]);
+-                      }}>{util}</button>
+-                    )
+-                  })}
+-                </div>
+-                <div className="flex gap-2">
+-                  <button className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", formData.landPaved === true ? "bg-[#00E5FF] text-black border-black neon-glow-cyan transform -skew-x-2" : "bg-black/60 text-white border-[#00E5FF] hover:bg-white/20")} onClick={() => updateForm('landPaved', formData.landPaved === true ? null : true)}>Paved Access</button>
+-                  <button className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", formData.landPaved === false ? "bg-[#00E5FF] text-black border-black neon-glow-cyan transform -skew-x-2" : "bg-black/60 text-white border-[#00E5FF] hover:bg-white/20")} onClick={() => updateForm('landPaved', formData.landPaved === false ? null : false)}>Dirt Road Access</button>
+-                </div>
+-              </div>
+-            )}
+-
+-            <div className="w-full h-px bg-border-strong my-2"></div>
+-
+-            <div className="flex flex-col mb-2">
+-               <span className="text-xs font-bold mb-1 tracking-wider uppercase text-[#00E5FF]">Agent</span>
+-               <div className="relative bg-black/60 backdrop-blur-md border-4 border-[#00E5FF] p-6 shadow-[6px_6px_0px_#000] text-xl font-bold text-white leading-relaxed rounded-2xl rounded-tl-none mb-6">
+-                 "Awesome. Now just so I know what we are dealing with, is the property currently vacant, or do you have folks living there right now?"
+-               </div>
+-            </div>
+-
+-            <div className="flex gap-4">
+-              {['Owner', 'Tenant', 'Vacant'].map(type => (
+-                <button key={type} className={clsx("px-6 py-3 rounded-xl text-sm font-bold border flex-1 transition-all", formData.occupancy === type ? "bg-[#00E5FF] text-black border-black shadow-[0_0_15px_rgba(59,130,246,0.5)]" : "bg-black/60 text-white border-[#00E5FF] hover:bg-white/20")} onClick={() => updateForm('occupancy', formData.occupancy === type ? '' : type)}>{type}</button>
+-              ))}
+-            </div>
+-
+-            {formData.occupancy && (
+-              <div className="mt-4 p-4 bg-white border border-black rounded-xl animate-slideIn">
+-                 <div className="bg-white p-4 rounded-xl border-l-4 border-black text-black leading-relaxed text-sm mb-4">
+-                   "Got it. And before we get too far into the weeds, are you the sole owner on title, or is there a spouse or partner we'd need to loop in eventually?"
+-                 </div>
+-                 <label className="text-xs text-gray-800 uppercase block mb-3">Decision Makers</label>
+-                 <div className="flex gap-2">
+-                   {['Sole Owner', 'Spouse / Partner', 'Trust / Probate'].map(opt => (
+-                     <button key={opt} className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", formData.decisionMakers === opt ? "bg-accent-secondary text-black border-accent-secondary" : "border-black text-gray-800 hover:bg-white/5")} onClick={() => updateForm('decisionMakers', formData.decisionMakers === opt ? null : opt)}>{opt}</button>
+-                   ))}
+-                 </div>
+-                 
+-                 {formData.decisionMakers === 'Trust / Probate' && (
+-                   <div className="mt-4 p-3 bg-white border-l-4 border-accent-secondary text-black text-sm animate-slideIn">
+-                     "Got it. Probates can be a headache, but we navigate them all the time so we can definitely help with that. Since it's in a trust or probate, has the probate process officially started yet? And how many heirs or decision makers are involved?"
+-                     <div className="mt-3 flex gap-2">
+-                       <input type="text" placeholder="Who is the Executor/Admin?" value={formData.executor} onChange={e => updateForm('executor', e.target.value)} className="flex-1 bg-white border border-black rounded-lg p-2 text-black outline-none" />
+-                       <input type="number" placeholder="Total Heirs" value={formData.trustHeadcount} onChange={e => updateForm('trustHeadcount', e.target.value)} className="w-32 bg-white border border-black rounded-lg p-2 text-black outline-none" />
+-                     </div>
+-                   </div>
+-                 )}
+-              </div>
+-            )}
+-
+-            {/* Dynamic Follow-up: Tenant */}
+-            {formData.occupancy === 'Tenant' && (
+-              <div className="mt-4 p-4 bg-white border border-black rounded-xl animate-slideIn">
+-                <p className="text-sm text-black mb-2">"And are they currently paying on time? What are they paying in rent right now, and are they on a month-to-month or long-term lease?"</p>
+-                <div className="flex gap-2 mb-2">
+-                  <input type="number" placeholder="Rent Amount ($)..." value={formData.rentAmount} onChange={e => updateForm('rentAmount', e.target.value)} className="flex-1 bg-white border border-black rounded-lg p-2 text-black outline-none" />
+-                  <input type="text" placeholder="How do they pay? (Zelle, Cash)..." value={formData.rentMethod} onChange={e => updateForm('rentMethod', e.target.value)} className="flex-1 bg-white border border-black rounded-lg p-2 text-black outline-none" />
+-                </div>
+-                <div className="flex gap-2 mb-2">
+-                  <button className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", formData.leaseType === 'M2M' ? "bg-[#00E5FF] text-black border-black neon-glow-cyan transform -skew-x-2" : "bg-black/60 text-white border-[#00E5FF] hover:bg-white/20")} onClick={() => updateForm('leaseType', formData.leaseType === 'M2M' ? null : 'M2M')}>Month-to-Month</button>
+-                  <button className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", formData.leaseType === 'Lease' ? "bg-[#00E5FF] text-black border-black neon-glow-cyan transform -skew-x-2" : "bg-black/60 text-white border-[#00E5FF] hover:bg-white/20")} onClick={() => updateForm('leaseType', formData.leaseType === 'Lease' ? null : 'Lease')}>Fixed Lease</button>
+-                  <button className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", formData.tenantStatus?.includes('Paying on Time') ? "bg-accent-success text-black border-accent-success" : "bg-black/60 text-white border-[#00E5FF] hover:bg-white/20")} onClick={() => {
+-                    const status = formData.tenantStatus || [];
+-                    updateForm('tenantStatus', status.includes('Paying on Time') ? status.filter(s => s !== 'Paying on Time') : [...status, 'Paying on Time']);
+-                  }}>Paying on Time</button>
+-                </div>
+-                <div className="mt-3 pt-3 border-t border-black flex gap-2 items-center">
+-                  <span className="text-xs text-gray-800 uppercase">If Behind on Rent:</span>
+-                  <input type="number" placeholder="Amount Behind ($)..." value={formData.rentArrears} onChange={e => updateForm('rentArrears', e.target.value)} className="w-40 bg-white border border-black rounded-lg p-2 text-black outline-none" />
+-                  <button className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", formData.tenantStatus?.includes('Eviction Needed') ? "bg-red-600 text-black border-red-600 shadow-[0_0_10px_rgba(220,38,38,0.5)]" : "bg-black/60 text-white border-[#00E5FF] hover:bg-white/20")} onClick={() => {
+-                    const status = formData.tenantStatus || [];
+-                    updateForm('tenantStatus', status.includes('Eviction Needed') ? status.filter(s => s !== 'Eviction Needed') : [...status, 'Eviction Needed']);
+-                  }}>Eviction Needed</button>
+-                </div>
+-              </div>
+-            )}
+-
+-            {/* Dynamic Follow-up: Vacant */}
+-            {formData.occupancy === 'Vacant' && (
+-              <div className="mt-4 p-4 bg-white border border-black rounded-xl animate-slideIn">
+-                <p className="text-sm text-black mb-2">"Okay, since it's vacant, how long has it been sitting empty? Have you had any issues with squatters or break-ins that we should know about?"</p>
+-                <input type="text" placeholder="How long vacant? (e.g., 6 months)..." value={formData.vacantLength} onChange={e => updateForm('vacantLength', e.target.value)} className="w-full bg-black/40 backdrop-blur-md border-2 border-[#00E5FF] rounded-lg p-2 text-white outline-none mb-3 placeholder-gray-400" />
+-                <div className="flex gap-2">
+-                  {['Boarded Up', 'Squatters', 'Vandalized'].map(issue => {
+-                    const isSelected = formData.vacantIssues?.includes(issue);
+-                    return (
+-                      <button key={issue} className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", isSelected ? "bg-[#FF0055] text-white border-black neon-glow-red transform -skew-x-2" : "bg-black/60 text-white border-[#00E5FF] hover:bg-white/20")} onClick={() => {
+-                        const current = formData.vacantIssues || [];
+-                        updateForm('vacantIssues', isSelected ? current.filter(i => i !== issue) : [...current, issue]);
+-                      }}>{issue}</button>
+-                    )
+-                  })}
+-                </div>
+-              </div>
+-            )}
+-          </div>
+-        ))}
+-
+-        {/* PILLAR 3: CONDITION */}
+-        {renderPillar(3, "Condition", <Wrench size={20} />, (
+-          <div className="flex flex-col gap-6">
+-            <div className="flex flex-col mb-2">
+-               <span className="text-xs font-bold mb-1 tracking-wider uppercase text-[#00E5FF]">Agent</span>
+-               <div className="relative bg-black/60 backdrop-blur-md border-4 border-[#00E5FF] p-6 shadow-[6px_6px_0px_#000] text-xl font-bold text-white leading-relaxed rounded-2xl rounded-tl-none mb-6">
+-                 {formData.roof.length > 0 && formData.hvac.length > 0 ? "You mentioned earlier the condition of the roof and AC, which helps a lot." : 
+-                  formData.roof.length > 0 ? "You mentioned the roof earlier, but what about the AC? Has that been replaced anytime recently?" :
+-                  formData.hvac.length > 0 ? "You mentioned the AC earlier, but what about the roof? Has that been replaced anytime recently?" :
+-                  "Typically our biggest expenses are the roof and the AC. Have those been replaced anytime recently?"}
+-               </div>
+-            </div>
+-
+-            <div className="space-y-6">
+-              <div className="grid grid-cols-2 gap-6">
+-                <div>
+-                  <label className="text-xs text-gray-800 uppercase block mb-2">Roof Condition</label>
+-                  <div className="flex flex-wrap gap-2">
+-                    {['Good / New', 'Active Leaks', 'Tarped / Failed'].map(opt => (
+-                      <button key={opt} onClick={() => handleToggle('roof', opt)} className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", formData.roof.includes(opt) ? "bg-accent-alert text-black border-accent-alert" : "bg-black/60 text-white border-[#00E5FF] hover:bg-white/20")}>{opt}</button>
+-                    ))}
+-                  </div>
+-                </div>
+-                <div>
+-                  <label className="text-xs text-gray-800 uppercase block mb-2">HVAC / AC</label>
+-                  <div className="flex flex-wrap gap-2">
+-                    {['Good / New', 'Older / Works', 'Broken / Window Units'].map(opt => (
+-                      <button key={opt} onClick={() => handleToggle('hvac', opt)} className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", formData.hvac.includes(opt) ? "bg-accent-alert text-black border-accent-alert" : "bg-black/60 text-white border-[#00E5FF] hover:bg-white/20")}>{opt}</button>
+-                    ))}
+-                  </div>
+-                </div>
+-              </div>
+-              
+-              {showedRoofHVACReaction && (
+-                 <div className="p-3 mb-4 bg-white border-l-4 border-accent-secondary text-black text-sm animate-slideIn">
+-                   "Got it. Don't worry too much about that, we deal with replacing those all the time."
+-                 </div>
+-              )}
+-
+-              <div className="flex flex-col mb-2">
+-                 <span className="text-xs font-bold mb-1 tracking-wider uppercase text-[#00E5FF]">Agent</span>
+-                 <div className="relative bg-black/60 backdrop-blur-md border-4 border-[#00E5FF] p-6 shadow-[6px_6px_0px_#000] text-xl font-bold text-white leading-relaxed rounded-2xl rounded-tl-none mb-6">
+-                   {formData.plumbing.length > 0 && formData.electrical.length > 0 ? "You also mentioned the plumbing and electrical situation earlier..." :
+-                    formData.plumbing.length > 0 ? "You mentioned the plumbing earlier... what about the electrical, is the panel updated?" :
+-                    formData.electrical.length > 0 ? "You mentioned the electrical earlier... what about the plumbing, any recent updates there?" :
+-                    "Okay, what about the plumbing and electrical... any recent updates there?"}
+-                 </div>
+-              </div>
+-              
+-              <div className="grid grid-cols-2 gap-6">
+-                <div>
+-                  <label className="text-xs text-gray-800 uppercase block mb-2">Plumbing</label>
+-                  <div className="flex flex-wrap gap-2">
+-                    {['Updated', 'Active Leaks', 'Galvanized / Old'].map(opt => (
+-                      <button key={opt} onClick={() => handleToggle('plumbing', opt)} className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", formData.plumbing.includes(opt) ? "bg-accent-alert text-black border-accent-alert" : "bg-black/60 text-white border-[#00E5FF] hover:bg-white/20")}>{opt}</button>
+-                    ))}
+-                  </div>
+-                </div>
+-                <div>
+-                  <label className="text-xs text-gray-800 uppercase block mb-2">Electrical</label>
+-                  <div className="flex flex-wrap gap-2">
+-                    {['Updated Panel', 'Old / Fuses', 'Knob & Tube'].map(opt => (
+-                      <button key={opt} onClick={() => handleToggle('electrical', opt)} className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", formData.electrical.includes(opt) ? "bg-accent-alert text-black border-accent-alert" : "bg-black/60 text-white border-[#00E5FF] hover:bg-white/20")}>{opt}</button>
+-                    ))}
+-                  </div>
+-                </div>
+-              </div>
+-              
+-              {showedPlumbingReaction && (
+-                 <div className="p-3 mb-4 bg-white border-l-4 border-accent-secondary text-black text-sm animate-slideIn">
+-                   "Okay, yeah, we usually end up having to repipe and rewire those older setups anyway, so that's not a deal breaker."
+-                 </div>
+-              )}
+-
+-              <div className="flex flex-col mb-2">
+-                 <span className="text-xs font-bold mb-1 tracking-wider uppercase text-[#00E5FF]">Agent</span>
+-                 <div className="relative bg-black/60 backdrop-blur-md border-4 border-[#00E5FF] p-6 shadow-[6px_6px_0px_#000] text-xl font-bold text-white leading-relaxed rounded-2xl rounded-tl-none mb-6">
+-                   {formData.cosmetics.length > 0 ? "You already gave me a good idea of the kitchen and bath conditions..." :
+-                    "Have the kitchen or bathrooms been updated recently, or are they pretty original?"}
+-                 </div>
+-              </div>
+-
+-              <div>
+-                <label className="text-xs text-gray-800 uppercase block mb-2">Kitchen & Bathrooms (Cosmetics)</label>
+-                <div className="flex flex-wrap gap-2">
+-                  {['Recently Updated', 'Livably Dated', 'Original / Gut Job', 'Subfloor Issues', 'Foundation Issues'].map(opt => (
+-                    <button key={opt} onClick={() => handleToggle('cosmetics', opt)} className={clsx("px-5 py-2 border-2 border-black text-sm font-bangers tracking-widest uppercase transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#000] transform -skew-x-12", formData.cosmetics.includes(opt) ? "bg-accent-alert text-black border-accent-alert" : "bg-black/60 text-white border-[#00E5FF] hover:bg-white/20")}>{opt}</button>
+-                  ))}
+-                </div>
+-              </div>
+-
+-              {formData.cosmetics.includes('Original / Gut Job') && (
+-                 <div className="p-3 mb-4 bg-white border-l-4 border-accent-secondary text-black text-sm animate-slideIn">
+-                   "Gotcha. Sounds like it needs some pretty heavy cosmetic love. That's right up our alley."
+-                 </div>
+-              )}
+-
+-              <div className="flex flex-col mb-2 mt-4">
+-                 <span className="text-xs font-bold mb-1 tracking-wider uppercase text-[#00E5FF]">Agent</span>
+-                 <div className="relative bg-black/60 backdrop-blur-md border-4 border-[#00E5FF] p-6 shadow-[6px_6px_0px_#000] text-xl font-bold text-white leading-relaxed rounded-2xl rounded-tl-none mb-6">
+-                   {formData.highRisk.length > 0 ? "And you mentioned earlier the structural situation, which I have noted..." :
+-                    "Makes sense. Before we move on from the property itself, any red flags we'd need to know about? Like foundation settling or unpermitted additions?"}
+-                 </div>
+-              </div>
+-
+-              <div className="p-4 bg-red-900/10 border border-red-900/30 rounded-xl">
+-                 <div className="flex flex-wrap gap-2 mb-4">
+-                   {['Foundation Issues', 'Unpermitted Additions', 'Hoarder', 'Code Violations', 'Fire/Water Damage'].map(opt => (
+-                     <button key={opt} onClick={() => handleToggle('highRisk', opt)} className={clsx("px-4 py-2 rounded-full text-xs font-bold border transition-all", formData.highRisk.includes(opt) ? "bg-red-600 text-black border-red-600 shadow-[0_0_15px_rgba(220,38,38,0.5)]" : "bg-white text-red-400 border-red-500/30 hover:bg-red-900/20")}>
+-                       <AlertTriangle size={14} className="inline mr-2"/> {opt}
+-                     </button>
+-                   ))}
+-                 </div>
+-                 
+-                 {formData.highRisk.includes('Fire/Water Damage') && (
+-                   <div className="mt-4 p-3 bg-white border-l-4 border-red-500 text-black text-sm animate-slideIn">
+-                     "Oof, okay. With fire damage, the scope can get pretty crazy. Do you know if the city has pulled the meter or red-tagged the property?"
+-                   </div>
+-                 )}
+-              </div>
+-            </div>
+-          </div>
+-        ))}
+
+<truncated 23535 bytes>
+
+NOTE: The output was truncated because it was too long. Use a more targeted query or a smaller range to get the information you need.
+---
+Created At: 2026-06-17T19:19:22Z
+Completed At: 2026-06-17T19:19:23Z
+
+				The command completed successfully.
+				Output:
+				<truncated 276 lines>
+tent":"Created At: 2026-06-11T00:09:34Z\nCompleted At: 2026-06-11T00:09:34Z\nThe following changes were made by the 
+multi_replace_file_content tool to: c:\\Users\\avory\\OneDrive\\Desktop\\AI_Agent_Projects\\3_Sales_Workflow_Agent\\v3_
+app\\src\\components\\script\\CallScript.jsx. If relevant, proactively run terminal commands to execute this code for 
+the USER. Don't ask for permission.\n[diff_block_start]\n@@ -308,7 +308,7 @@\n                     ? `\"Hey, am I 
+speaking with the trustee for the ${activeLead?.name || 'Trust'}? My name is Avory, a local investor. I was calling 
+about the property over on ${targetAddress}... have the trustees ever considered selling it?\"`\n                     
+: formData.manualEntityType === 'LLC'\n                     ? `\"Hey, am I speaking with the owner of 
+${activeLead?.name || 'the LLC'}? My name is Avory, a local investor. I was calling about the property over on 
+${targetAddress}... have you or your partners ever considered selling it?\"`\n-                    : <>\"Hey 
+{sellerFirstName}. How are you doing today? <br/><br/><span className=\"text-sm text-text-soft italic\">[PAUSE to wait 
+for verification]</span><br/><br/>My name is Avory, a local investor wanting to talk about the property at <span 
+className=\"text-accent-blue font-bold\">{targetAddress}</span>.\"</>\n+                    : <>\"Hey 
+{sellerFirstName}. How are you doing today? <br/><br/><span className=\"text-sm text-text-soft italic\">[PAUSE to wait 
+for verification]</span><br/><br/>My name is Avory, a local investor wanting to talk about the property at <span 
+className=\"text-accent-blue font-bold\">{targetAddress}</span>. Just looking to see if you've considered selling and 
+would possibly be open to a cash offer?\"</>\n                   }\n                 </div>\n               </div>\n@@ 
+-391,15 +391,7 @@\n             \n             {(formData.noPushback || formData.activeObjection || 
+formData.introResponse === 'Who') && !formData.isVoicemail && !formData.isHostile && formData.activeSource !== 'Agent 
+Outreach' && (\n               <div className=\"flex fl\n<truncated 1230 bytes>\nnsition-colors\", 
+formData.offerResponse === 'Yes' ? \"bg-accent-success text-black border-accent-success\" : \"text-white 
+border-border-subtle hover:bg-white/10\")} onClick={() => updateForm('offerResponse', formData.offerResponse === 'Yes' 
+? null : 'Yes')}>\"Yes / Sure\"</button>\n@@ -446,6 +446,8 @@\n             )}\n           </div>\n         ))}\n+     
+     </div>\n+        ))}\n \n         {/* PILLAR 2: PROPERTY DYNAMICS & OCCUPANCY */}\n         {renderPillar(2, 
+\"Property Details & Occupancy\", <Home size={20} />, (\n@@ -650,6 +650,15 @@\n           <h3 className=\"font-walter 
+text-lg text-white mb-4 border-b border-border-strong pb-2\">Fast Facts</h3>\n           <div 
+className=\"space-y-4\">\n             <div><p className=\"text-xs text-text-soft uppercase\">Lead Name</p><p 
+className=\"font-bold text-white text-lg\">{formData.manualName || activeLead?.name || 'Manual Entry'}</p></div>\n+    
+        \n+            {/* PROPERTY DETAILS FROM BATCHLEADS */}\n+            {formData.beds && formData.baths && (\n+ 
+             <div className=\"grid grid-cols-2 gap-2 p-3 bg-purple-900/10 border border-purple-500/20 rounded-lg\">\n+ 
+               <div><p className=\"text-[10px] text-purple-400 uppercase tracking-widest\">Beds/Baths</p><p 
+className=\"font-bold text-white\">{formData.beds} / {formData.baths}</p></div>\n+                <div><p 
+className=\"text-[10px] text-purple-400 uppercase tracking-widest\">SqFt</p><p className=\"font-bold 
+text-white\">{formData.sqft}</p></div>\n+              </div>\n+            )}\n+\n             <div><p 
+className=\"text-xs text-text-soft uppercase\">Occupancy</p><p className=\"font-bold text-white\">{formData.occupancy 
+|| 'Unknown'}</p></div>\n             <div><p className=\"text-xs text-text-soft uppercase mb-1\">Risk Score</p>\n     
+          <div className=\"flex items-center gap-2\">\n[diff_block_end]\n\nPlease note that the above snippet only 
+shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified 
+lines. The actual file contents may have many more lines not shown."}
+  C:\Users\avory\.gemini\antigravity\brain\91dc1a01-e8f5-49ce-8347-2f8ca71c1cad\.system_generated\logs\transcript.jsonl
+:3292:{"step_index":3342,"source":"SYSTEM","type":"EPHEMERAL_MESSAGE","status":"DONE","created_at":"2026-06-11T00:09:34
+Z","content":"The following is an <EPHEMERAL_MESSAGE> not actually sent by the user. It is provided by the system as a 
+set of reminders and general important information to pay attention to. Do NOT respond to this message, just act 
+accordingly.\n\n<EPHEMERAL_MESSAGE>\n<planning_mode>\nYou're in planning mode. Exercise judgement on whether the 
+user's last request warrants a plan and take action accordingly.\nIf the user's request warrants a plan then follow 
+this workflow:\n1. Research first before taking actions. Do not use your code editing tools or run modifying commands 
+during this time.\n2. Create an implementation plan artifact with `request_feedback = true` to request approval. 
+Include any open questions for the user directly in the implementation plan. Don't use the ask_question tool to ask 
+these questions. Stop calling tools and allow the user to review the plan and provide feedback or approval.\n3. After 
+receiving approval, begin execution. Create and update the task artifact as you work.\n4. Verify any work that you 
+have done.\n5. Create a walkthrough artifact to present your work to the user. When writing artifacts, make sure to 
+follow the artifact formatting guidelines and use github alerts to highlight critical sections.\nIf the user's request 
+does NOT warrant a plan then continue your work WITHOUT making a plan or requesting user 
+feedback.\n</planning_mode>\n<bash_command_reminder>\nCRITICAL INSTRUCTION 1: You may have access to a variety of 
+tools at your disposal. Some tools may be for a specific task such as 'view_file' (for viewing contents of a file). 
+Others may be very broadly applicable such as the ability to run a command on a terminal. Always prioritize using the 
+most specific tool you can for the task at hand. Here are some rules: (a) NEVER run cat inside a bash command to 
+create a new file or append to an existing file. (b) ALWAYS use grep_search instead of running grep inside a bash 
+command unless absolutely needed. (c) DO NOT use ls for listing, cat for viewing, grep for finding, sed for replacing. 
+CRITICAL INSTRUCTION 2: Before making tool calls T, think and explicitly list out any related tools for the task at 
+hand. You can only execute a set of tools T if all other tools in the list are either more generic or cannot be used 
+for the task at hand. ALWAYS START your thought with recalling critical instructions 1 and 2. In particular, the 
+format for the start of your thought block must be '...94>thought\nCRITICAL INSTRUCTION 1: ...\nCRITICAL INSTRUCTION 
+2: ...'.\n</bash_command_reminder>\n</EPHEMERAL_MESSAGE>"}
+  C:\Users\avory\.gemini\antigravity\brain\91dc1a01-e8f5-49ce-8347-2f8ca71c1cad\.system_generated\logs\transcript.jsonl
+:3293:{"step_index":3343,"source":"MODEL","type":"PLANNER_RESPONSE","status":"DONE","created_at":"2026-06-11T00:09:34Z"
+,"thinking":"**Prioritizing Tool Usage**\n\nI'm now focusing on tool selection, emphasizing specific tools over 
+general ones where possible. The goal is to optimize efficiency by leveraging tools tailored to particular tasks, like 
+viewing files. This strategy promises a more targeted and less error-prone approach to problem-solving, which I will 
+continue to refine and implement moving forward.\n\n\n","tool_calls":[{"name":"view_file","args":{"AbsolutePath":"\"c:\
+\\\Users\\\\avory\\\\OneDrive\\\\Desktop\\\\AI_Agent_Projects\\\\3_Sales_Workflow_Agent\\\\v3_app\\\\src\\\\components\
+\\\script\\\\CallScript.jsx\"","EndLine":"460","StartLine":"430","toolAction":"\"Check syntax 
+error\"","toolSummary":"\"Check syntax\""}}]}
+
+
+
+
+---

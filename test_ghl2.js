@@ -1,0 +1,1 @@
+fetch('https://services.leadconnectorhq.com/opportunities/pipelines?locationId=undefined', {headers:{'Authorization':'Bearer pit-2bfb9871-b8b9-4fa8-9ad8-41cd0012acc3', 'Version':'2021-07-28', 'Accept':'application/json'}}).then(r=>r.text()).then(console.log);

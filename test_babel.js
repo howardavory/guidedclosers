@@ -1,0 +1,1 @@
+const code = "function App() { return ( <div> {renderPillar(1, 'Title', <Mic />, ( <div> </div> ))} </div> ); }"; try { require('@babel/parser').parse(code, { sourceType: 'module', plugins: ['jsx'] }); console.log('Success'); } catch(e) { console.log(e); }

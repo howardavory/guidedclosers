@@ -1,0 +1,12 @@
+<USER_REQUEST>
+this is terrrible it went something like this for default
+hey seller
+pause wait for validation
+my name is avory a local investor, I was just giving you a call about property address to see if you've considered selling and are open to a cash offer?
+
+something like that. 
+and agent, trust, llc, are good I guess.
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-12T10:58:26-07:00.
+</ADDITIONAL_METADATA>
