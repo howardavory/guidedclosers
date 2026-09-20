@@ -35,20 +35,24 @@ export async function sandboxLogin(role) {
   return { success: true, user: { id: user.id, username: user.username, role: user.role } };
 }
 
-export async function productionLogin(username, password) {
-  if (!username || typeof username !== 'string') return { success: false, error: 'Invalid username format' };
+export async function productionLogin(usernameOrEmail, password) {
+  if (!usernameOrEmail || typeof usernameOrEmail !== 'string') return { success: false, error: 'Invalid login format' };
   
-  // Enforce Username constraints (Max 15 chars, alphanumeric, case-insensitive)
-  if (username.length > 15) return { success: false, error: 'Username must be 15 characters or less' };
-  if (!/^[a-zA-Z0-9]+$/.test(username)) return { success: false, error: 'Username must be alphanumeric only' };
+  const cleanInput = usernameOrEmail.toLowerCase().trim();
   
   // Enforce Password constraints (Min 5, max 17 chars)
   if (!password || typeof password !== 'string') return { success: false, error: 'Invalid password format' };
   if (password.length < 5 || password.length > 17) return { success: false, error: 'Password must be between 5 and 17 characters' };
 
-  const cleanUsername = username.toLowerCase();
-
-  const user = await prisma.user.findUnique({ where: { username: cleanUsername } });
+  const user = await prisma.user.findFirst({ 
+    where: { 
+      OR: [
+        { username: cleanInput },
+        { email: cleanInput }
+      ]
+    } 
+  });
+  
   if (!user) {
     return { success: false, error: 'Invalid credentials' };
   }
