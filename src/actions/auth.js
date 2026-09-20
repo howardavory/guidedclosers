@@ -46,20 +46,27 @@ export async function productionLogin(usernameOrEmail, password) {
 
   // Emergency Admin Provisioning for Live DB (if wiped/unseeded)
   if (cleanInput === 'howardavory617' && password === 'Annabelle32616!') {
-    let adminUser = await prisma.user.findFirst({ where: { username: 'howardavory617' } });
-    if (!adminUser) {
-      const passwordHash = await bcrypt.hash(password, 10);
-      adminUser = await prisma.user.create({
-        data: {
-          email: 'howard.avory@gmail.com',
-          username: 'howardavory617',
-          passwordHash,
-          role: 'ADMIN',
-          firstName: 'Howard',
-          lastName: 'Avory'
-        }
-      });
-      // Ensure workspace exists
+    const passwordHash = await bcrypt.hash(password, 10);
+    const adminUser = await prisma.user.upsert({
+      where: { email: 'howard.avory@gmail.com' },
+      update: {
+        username: 'howardavory617',
+        passwordHash,
+        role: 'ADMIN'
+      },
+      create: {
+        email: 'howard.avory@gmail.com',
+        username: 'howardavory617',
+        passwordHash,
+        role: 'ADMIN',
+        firstName: 'Howard',
+        lastName: 'Avory'
+      }
+    });
+    
+    // Ensure workspace exists
+    const workspace = await prisma.workspace.findFirst({ where: { ownerId: adminUser.id } });
+    if (!workspace) {
       await prisma.workspace.create({
         data: { name: 'Howard Workspace', ownerId: adminUser.id }
       });
