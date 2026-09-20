@@ -36,76 +36,97 @@ export async function sandboxLogin(role) {
 }
 
 export async function productionLogin(usernameOrEmail, password) {
-  if (!usernameOrEmail || typeof usernameOrEmail !== 'string') return { success: false, error: 'Invalid login format' };
-  
-  const cleanInput = usernameOrEmail.toLowerCase().trim();
-  
-  // Enforce Password constraints (Min 5, max 17 chars)
-  if (!password || typeof password !== 'string') return { success: false, error: 'Invalid password format' };
-  if (password.length < 5 || password.length > 17) return { success: false, error: 'Password must be between 5 and 17 characters' };
+  try {
+    if (!usernameOrEmail || typeof usernameOrEmail !== 'string') return { success: false, error: 'Invalid login format' };
+    
+    const cleanInput = usernameOrEmail.toLowerCase().trim();
+    
+    // Enforce Password constraints (Min 5, max 17 chars)
+    if (!password || typeof password !== 'string') return { success: false, error: 'Invalid password format' };
+    if (password.length < 5 || password.length > 17) return { success: false, error: 'Password must be between 5 and 17 characters' };
 
-  // Emergency Admin Provisioning for Live DB (if wiped/unseeded)
-  if (cleanInput === 'howardavory617' && password === 'Annabelle32616!') {
-    const passwordHash = await bcrypt.hash(password, 10);
-    const adminUser = await prisma.user.upsert({
-      where: { email: 'howard.avory@gmail.com' },
-      update: {
-        username: 'howardavory617',
-        passwordHash,
-        role: 'ADMIN'
-      },
-      create: {
-        email: 'howard.avory@gmail.com',
-        username: 'howardavory617',
-        passwordHash,
-        role: 'ADMIN',
-        firstName: 'Howard',
-        lastName: 'Avory'
+    // Emergency Admin Provisioning for Live DB (if wiped/unseeded)
+    if (cleanInput === 'howardavory617' && password === 'Annabelle32616!') {
+      try {
+        const passwordHash = await bcrypt.hash(password, 10);
+        
+        // 1. First see if user exists by username to avoid unique collision
+        let adminUser = await prisma.user.findUnique({ where: { username: 'howardavory617' } });
+        
+        if (!adminUser) {
+          // If not found by username, try to upsert by email
+          adminUser = await prisma.user.upsert({
+            where: { email: 'howard.avory@gmail.com' },
+            update: {
+              username: 'howardavory617',
+              passwordHash,
+              role: 'ADMIN'
+            },
+            create: {
+              email: 'howard.avory@gmail.com',
+              username: 'howardavory617',
+              passwordHash,
+              role: 'ADMIN',
+              firstName: 'Howard',
+              lastName: 'Avory'
+            }
+          });
+        } else {
+          // Exists by username, just make sure password and role are correct
+          adminUser = await prisma.user.update({
+            where: { username: 'howardavory617' },
+            data: { passwordHash, role: 'ADMIN' }
+          });
+        }
+        
+        // Ensure workspace exists
+        const workspace = await prisma.workspace.findFirst({ where: { ownerId: adminUser.id } });
+        if (!workspace) {
+          await prisma.workspace.create({
+            data: { name: 'Howard Workspace', ownerId: adminUser.id }
+          });
+        }
+      } catch (provErr) {
+        return { success: false, error: 'Emergency Provisioning Failed: ' + provErr.message };
       }
+    }
+
+    const user = await prisma.user.findFirst({ 
+      where: { 
+        OR: [
+          { username: cleanInput },
+          { email: cleanInput }
+        ]
+      } 
     });
     
-    // Ensure workspace exists
-    const workspace = await prisma.workspace.findFirst({ where: { ownerId: adminUser.id } });
-    if (!workspace) {
-      await prisma.workspace.create({
-        data: { name: 'Howard Workspace', ownerId: adminUser.id }
-      });
+    if (!user) {
+      return { success: false, error: 'Invalid credentials - User not found in DB' };
     }
+
+    const isValid = await bcrypt.compare(password, user.passwordHash);
+    if (!isValid) {
+      return { success: false, error: 'Invalid credentials - Incorrect password' };
+    }
+
+    if (user.isTwoFactorEnabled) {
+      return { success: true, require2FA: true, userId: user.id };
+    }
+
+    const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: '1d' });
+    
+    const cookieStore = await cookies();
+    cookieStore.set('auth_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+    });
+
+    return { success: true, user: { id: user.id, username: user.username, role: user.role, firstName: user.firstName, lastName: user.lastName } };
+  } catch (globalErr) {
+    return { success: false, error: 'Server Error: ' + globalErr.message };
   }
-
-  const user = await prisma.user.findFirst({ 
-    where: { 
-      OR: [
-        { username: cleanInput },
-        { email: cleanInput }
-      ]
-    } 
-  });
-  
-  if (!user) {
-    return { success: false, error: 'Invalid credentials' };
-  }
-
-  const isValid = await bcrypt.compare(password, user.passwordHash);
-  if (!isValid) {
-    return { success: false, error: 'Invalid credentials' };
-  }
-
-  if (user.isTwoFactorEnabled) {
-    return { success: true, require2FA: true, userId: user.id };
-  }
-
-  const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: '1d' });
-  
-  const cookieStore = await cookies();
-  cookieStore.set('auth_token', token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-  });
-
-  return { success: true, user: { id: user.id, username: user.username, role: user.role, firstName: user.firstName, lastName: user.lastName } };
 }
 
 export async function verifyInviteToken(tokenStr) {
