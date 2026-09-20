@@ -4,8 +4,8 @@ import Stripe from 'stripe';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2024-06-20',
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_dummy', {
+  apiVersion: '2026-08-26.dahlia',
 });
 
 const prisma = new PrismaClient();
@@ -45,9 +45,10 @@ export async function POST(req: Request) {
       const user = await prisma.user.create({
         data: {
           email: email,
+          username: email.split('@')[0] + Math.floor(Math.random() * 10000),
           passwordHash: passwordHash,
           role: 'ADMIN',
-          firstName: 'Admin',
+          firstName: 'New Subscriber',
           stripeCustomerId: stripeCustomerId,
         }
       });
