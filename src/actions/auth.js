@@ -13,7 +13,7 @@ export async function sandboxLogin(role) {
     throw new Error('Sandbox login is strictly disabled in production.');
   }
 
-  const username = `${role.toLowerCase()}user`;
+  const username = role.toLowerCase();
   const user = await prisma.user.findUnique({
     where: { username },
   });
