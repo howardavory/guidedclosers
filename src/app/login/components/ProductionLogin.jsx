@@ -89,6 +89,10 @@ export default function ProductionLogin() {
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Email or Username"
                 maxLength={50}
+                autoComplete="username"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck="false"
                 className="w-full bg-[var(--bg-base)] border border-[var(--card-border)] text-[var(--text-base)] p-3 rounded-lg focus:outline-none focus:border-[#D4AF37] transition-colors"
                 required
               />
@@ -102,6 +106,11 @@ export default function ProductionLogin() {
               onChange={(e) => setPassword(e.target.value)}
               minLength={5}
               maxLength={17}
+              autoComplete="current-password"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck="false"
+              data-lpignore="true"
               className="w-full bg-[var(--bg-base)] border border-[var(--card-border)] text-[var(--text-base)] p-3 rounded-lg focus:outline-none focus:border-[#D4AF37] transition-colors"
               required
             />
