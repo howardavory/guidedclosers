@@ -20,6 +20,11 @@ export default function TearSheet({ onClose, formData: passedFormData, activeLea
   const [showModal, setShowModal] = useState(false);
   const [tearSheetText, setTearSheetText] = useState("");
   const [copied, setCopied] = useState(false);
+  const [assigneeName, setAssigneeName] = useState('');
+  const [assignedPrice, setAssignedPrice] = useState(Number(formData?.lockedPrice || formData?.askingPrice || 0) + (masterLead?.financialEngine?.assignmentFee || 30000));
+  const [assigneeEmd, setAssigneeEmd] = useState(5000);
+  const [titleCompany, setTitleCompany] = useState('');
+  const [showAssignmentModal, setShowAssignmentModal] = useState(false);
 
   // Dynamic Viability Scoring Engine
   const financialEngine = masterLead?.financialEngine || {};
@@ -478,16 +483,66 @@ ${formData?.solarSystem ? `• Solar: ${formData.solarSystem} ${formData.solarSy
                 document={<PurchaseAgreementPDF formData={formData} />}
                 fileName={`PSA_${(formData.legalName || 'Contract').replace(/\s+/g, '_')}.pdf`}
                 className="px-6 py-2 bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] text-black font-black text-sm tracking-widest uppercase rounded-xl shadow-lg hover:scale-105 transition-transform"
+                onClick={async () => {
+                   await fetch('/api/documents/save', {
+                     method: 'POST', body: JSON.stringify({ contactId: activeLead?.contactId, type: 'PSA', title: `PSA_${(formData.legalName || 'Contract').replace(/\s+/g, '_')}.pdf`, payload: JSON.stringify(formData) })
+                   });
+                }}
               >
-                {({ loading }) => loading ? 'GENERATING...' : '⬇ PSA PDF'}
+                {({ loading }) => loading ? 'GENERATING...' : '⬇ ACQUISITION (PSA)'}
               </PDFDownloadLink>
 
-              <PDFDownloadLink
-                document={<AssignmentAgreementPDF formData={formData} assignmentFee={masterLead?.financialEngine?.assignmentFee || 30000} />}
-                fileName={`ASSIGNMENT_${(formData.manualAddress || 'Contract').replace(/\s+/g, '_')}.pdf`}
+              <button
+                onClick={() => setShowAssignmentModal(true)}
                 className="px-6 py-2 bg-gradient-to-r from-[#10b981] to-[#059669] text-black font-black text-sm tracking-widest uppercase rounded-xl shadow-lg hover:scale-105 transition-transform"
               >
-                {({ loading }) => loading ? 'GENERATING...' : '⬇ ASSIGNMENT PDF'}
+                ⬇ DISPO (ASSIGNMENT)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Assignment Input Modal */}
+      {showAssignmentModal && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
+          <div className="bg-[#111] border border-[var(--brand-primary)] shadow-2xl rounded-2xl p-6 w-full max-w-lg flex flex-col gap-4">
+            <h2 className="text-xl font-black text-white uppercase tracking-widest mb-2 border-b border-white/10 pb-2">Assignment Details</h2>
+            
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-bold text-gray-400 uppercase">End Buyer Name (Assignee)</label>
+              <input type="text" value={assigneeName} onChange={e => setAssigneeName(e.target.value)} className="bg-black/50 border border-white/20 rounded p-2 text-white" />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-bold text-gray-400 uppercase">Assigned Purchase Price</label>
+              <input type="number" value={assignedPrice} onChange={e => setAssignedPrice(e.target.value)} className="bg-black/50 border border-white/20 rounded p-2 text-white" />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-bold text-gray-400 uppercase">Assignee EMD</label>
+              <input type="number" value={assigneeEmd} onChange={e => setAssigneeEmd(e.target.value)} className="bg-black/50 border border-white/20 rounded p-2 text-white" />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-bold text-gray-400 uppercase">Title/Escrow Company</label>
+              <input type="text" value={titleCompany} onChange={e => setTitleCompany(e.target.value)} className="bg-black/50 border border-white/20 rounded p-2 text-white" />
+            </div>
+
+            <div className="flex justify-end gap-3 mt-4">
+              <button onClick={() => setShowAssignmentModal(false)} className="px-4 py-2 bg-gray-800 text-white font-bold rounded">CANCEL</button>
+              <PDFDownloadLink
+                document={<AssignmentAgreementPDF formData={{ ...formData, endBuyerName: assigneeName, endBuyerEmd: assigneeEmd, titleCompany: titleCompany }} assignmentFee={assignedPrice - Number(formData?.lockedPrice || formData?.askingPrice || 0)} />}
+                fileName={`ASSIGNMENT_${assigneeName || 'Contract'}.pdf`}
+                className="px-6 py-2 bg-[#10b981] text-black font-black uppercase rounded shadow-lg hover:scale-105 transition-transform"
+                onClick={async () => {
+                   await fetch('/api/documents/save', {
+                     method: 'POST', body: JSON.stringify({ contactId: activeLead?.contactId, type: 'ASSIGNMENT', title: `ASSIGNMENT_${assigneeName || 'Contract'}.pdf`, payload: JSON.stringify({...formData, assigneeName, assignedPrice, assigneeEmd, titleCompany}) })
+                   });
+                   setShowAssignmentModal(false);
+                }}
+              >
+                {({ loading }) => loading ? 'GENERATING...' : 'DOWNLOAD ASSIGNMENT PDF'}
               </PDFDownloadLink>
             </div>
           </div>

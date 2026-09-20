@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import useStore from '@/store/useStore';
 import { useRouter } from 'next/navigation';
-import { User, Building, Users, Link2, Shield, Bell, Camera, Save, ArrowLeft, Smartphone, Monitor, Globe, Mail, X, Activity, MessageSquare, Database, Server, Map, Phone, PhoneCall, DollarSign } from 'lucide-react';
+import { User, Building, Users, Link2, Shield, Bell, Camera, Save, ArrowLeft, Smartphone, Monitor, Globe, Mail, X, Activity, MessageSquare, Database, Server, Map, Phone, PhoneCall, DollarSign, FileText } from 'lucide-react';
 import clsx from 'clsx';
 
 export default function SettingsPage() {
@@ -141,6 +141,7 @@ export default function SettingsPage() {
     { id: 'workspace', label: 'Workspace (White-Label)', icon: Building, roles: ['Manager', 'Admin'], group: 'Enterprise' },
     { id: 'team', label: 'Team & Roles', icon: Users, roles: ['Manager', 'Admin'], group: 'Enterprise' },
     { id: 'integrations', label: 'API Integrations', icon: Link2, roles: ['Manager', 'Admin'], group: 'Enterprise' },
+    { id: 'templates', label: 'Document Templates', icon: FileText, roles: ['Manager', 'Admin'], group: 'Enterprise' },
     { id: 'billing', label: 'Billing & Security', icon: Shield, roles: ['Manager', 'Admin'], group: 'Enterprise' }
   ];
 
@@ -955,6 +956,62 @@ export default function SettingsPage() {
                 </div>
               </div>
 
+            </div>
+          )}
+
+          {/* ===================== DOCUMENT TEMPLATES ===================== */}
+          {activeTab === 'templates' && isExecutive && (
+            <div className="animate-fade-in text-[var(--text-base)] max-w-4xl">
+              
+              <div className="flex items-center justify-between border-b border-[var(--card-border)] pb-4 mb-8">
+                <div>
+                  <h2 className="text-xl font-black tracking-widest text-[var(--brand-primary)] uppercase">Document Templates</h2>
+                  <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest mt-1">Upload custom legal contracts and define variable tags</p>
+                </div>
+                <button className="bg-[var(--card-bg)] hover:bg-[var(--brand-primary)] hover:text-black text-[var(--brand-primary)] border border-[var(--brand-primary)]/50 px-4 py-2 rounded-lg text-xs font-bold tracking-widest uppercase transition-all flex items-center gap-2">
+                  <Save size={14} /> Upload New Template
+                </button>
+              </div>
+
+              {/* Upload Box */}
+              <div className="bg-[var(--card-bg)] shadow-sm/50 p-6 rounded-xl border border-dashed border-[var(--brand-secondary)] mb-6 text-center hover:border-[var(--brand-primary)] transition-colors cursor-pointer">
+                <FileText size={48} className="mx-auto text-[var(--brand-primary)]/50 mb-4" />
+                <h3 className="text-[var(--text-base)] font-bold mb-2">Drag & Drop Template or Click to Upload</h3>
+                <p className="text-[var(--text-muted)] text-xs mb-4">Supported formats: .docx, .txt, .html</p>
+                <p className="text-[var(--text-muted)] text-[10px] uppercase">Use variable tags like {'{{seller_name}}'}, {'{{purchase_price}}'}</p>
+              </div>
+
+              {/* Active Templates List */}
+              <div className="bg-[var(--card-bg)] shadow-sm/50 rounded-xl border border-[var(--brand-secondary)] overflow-hidden">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-[var(--bg-base)] border-b border-[var(--card-border)]">
+                      <th className="p-4 text-[#555555] font-black text-[10px] uppercase tracking-widest">Template Name</th>
+                      <th className="p-4 text-[#555555] font-black text-[10px] uppercase tracking-widest">Type</th>
+                      <th className="p-4 text-[#555555] font-black text-[10px] uppercase tracking-widest">Status</th>
+                      <th className="p-4 text-[#555555] font-black text-[10px] uppercase tracking-widest text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-sm">
+                    <tr className="border-b border-[var(--card-border)] hover:bg-[var(--bg-base)]/50 transition-colors">
+                      <td className="p-4 font-bold text-[#FFFFFF]">Standard CA PSA</td>
+                      <td className="p-4 text-[#AAAAAA]"><span className="bg-[#D4AF37]/10 text-[#D4AF37] px-2 py-1 rounded text-[10px] font-bold">ACQUISITION</span></td>
+                      <td className="p-4"><span className="text-[#00E676] bg-[#00E676]/10 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest">Default Active</span></td>
+                      <td className="p-4 text-right">
+                        <button className="text-[var(--brand-primary)] hover:text-[#FFFFFF] text-xs font-bold uppercase tracking-widest">Edit</button>
+                      </td>
+                    </tr>
+                    <tr className="border-b border-[var(--card-border)] hover:bg-[var(--bg-base)]/50 transition-colors">
+                      <td className="p-4 font-bold text-[#FFFFFF]">Standard Assignment</td>
+                      <td className="p-4 text-[#AAAAAA]"><span className="bg-[#10b981]/10 text-[#10b981] px-2 py-1 rounded text-[10px] font-bold">DISPOSITION</span></td>
+                      <td className="p-4"><span className="text-[#00E676] bg-[#00E676]/10 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest">Default Active</span></td>
+                      <td className="p-4 text-right">
+                        <button className="text-[var(--brand-primary)] hover:text-[#FFFFFF] text-xs font-bold uppercase tracking-widest">Edit</button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
 

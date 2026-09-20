@@ -1,6 +1,6 @@
 'use client';
-import { useState } from 'react';
-import { ArrowLeft, Phone, Mail, MapPin, Tag, Plus, MessageSquare, PhoneCall } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowLeft, Phone, Mail, MapPin, Tag, Plus, MessageSquare, PhoneCall, FileText, Download } from 'lucide-react';
 import Link from 'next/link';
 import clsx from 'clsx';
 import CallScript from '@/components/script/CallScript';
@@ -11,15 +11,29 @@ export default function ContactDetails({ params }) {
   // For UI scaffolding, we are building the structural grid first.
   const [activeLead, setActiveLead] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [feedTab, setFeedTab] = useState('ACTIVITY');
+  const [documents, setDocuments] = useState([]);
 
   const mockLeadData = {
     id: 'mock-1',
+    contactId: 'mock-1', // used for documents
     name: 'John Doe',
     address: '123 Main St, Bakersfield, CA 93301',
     phone: '(555) 123-4567',
     email: 'john.doe@example.com',
     distressMarkers: ['Pre-Foreclosure']
   };
+
+  useEffect(() => {
+    if (feedTab === 'DOCUMENTS') {
+      fetch(`/api/documents/save?contactId=${mockLeadData.contactId}`)
+        .then(res => res.json())
+        .then(data => {
+           if(Array.isArray(data)) setDocuments(data);
+        })
+        .catch(err => console.error(err));
+    }
+  }, [feedTab]);
 
   const handleLaunchScript = () => {
     setActiveLead(mockLeadData);
@@ -113,37 +127,77 @@ export default function ContactDetails({ params }) {
                     </div>
                   </div>
 
-                  {/* COLUMN 2: Communication / Activity Feed */}
+                  {/* COLUMN 2: Communication / Activity Feed / Documents */}
                   <div className="xl:col-span-2 bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl flex flex-col h-full shadow-2xl overflow-hidden">
-                    <div className="p-5 border-b border-white/10 flex justify-between items-center bg-black/20 shrink-0">
-                      <h3 className="text-white font-black uppercase tracking-widest text-sm flex items-center gap-2">
-                        <MessageSquare size={16} className="text-[#00E5FF]"/> Activity Feed
-                      </h3>
+                    <div className="p-0 border-b border-white/10 flex bg-black/20 shrink-0">
+                      <button 
+                        onClick={() => setFeedTab('ACTIVITY')}
+                        className={clsx("flex-1 p-5 font-black uppercase tracking-widest text-sm text-center flex items-center justify-center gap-2 border-b-2 transition-all", feedTab === 'ACTIVITY' ? "border-[var(--brand-primary)] text-white bg-white/5" : "border-transparent text-gray-500 hover:bg-white/5")}
+                      >
+                        <MessageSquare size={16} className={feedTab === 'ACTIVITY' ? "text-[#00E5FF]" : "text-gray-500"}/> Activity Feed
+                      </button>
+                      <button 
+                        onClick={() => setFeedTab('DOCUMENTS')}
+                        className={clsx("flex-1 p-5 font-black uppercase tracking-widest text-sm text-center flex items-center justify-center gap-2 border-b-2 transition-all", feedTab === 'DOCUMENTS' ? "border-[var(--brand-primary)] text-white bg-white/5" : "border-transparent text-gray-500 hover:bg-white/5")}
+                      >
+                        <FileText size={16} className={feedTab === 'DOCUMENTS' ? "text-[#D4AF37]" : "text-gray-500"}/> Documents Archive
+                      </button>
                     </div>
                     
-                    <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
-                      {/* Mock Audit Log */}
-                      <div className="flex gap-4">
-                        <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/20">
-                          <Plus size={14} className="text-gray-400" />
+                    {feedTab === 'ACTIVITY' ? (
+                      <>
+                        <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+                          {/* Mock Audit Log */}
+                          <div className="flex gap-4">
+                            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/20">
+                              <Plus size={14} className="text-gray-400" />
+                            </div>
+                            <div className="flex-1 bg-white/5 border border-white/10 p-4 rounded-xl">
+                              <p className="text-xs text-white font-bold mb-1">Opportunity Created</p>
+                              <p className="text-xs text-gray-400">Added to Wholesale Pipeline - New Leads</p>
+                              <span className="text-[10px] text-gray-600 mt-2 block">Sep 18, 2026 - 10:30 AM</span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex-1 bg-white/5 border border-white/10 p-4 rounded-xl">
-                          <p className="text-xs text-white font-bold mb-1">Opportunity Created</p>
-                          <p className="text-xs text-gray-400">Added to Wholesale Pipeline - New Leads</p>
-                          <span className="text-[10px] text-gray-600 mt-2 block">Sep 18, 2026 - 10:30 AM</span>
-                        </div>
-                      </div>
-                    </div>
 
-                    {/* Input Area */}
-                    <div className="p-4 border-t border-white/10 bg-black/40 shrink-0">
-                      <div className="relative">
-                        <input type="text" placeholder="Type a note or message..." className="w-full bg-black/50 border border-white/20 text-white pl-4 pr-12 py-3 rounded-xl focus:border-[var(--brand-primary)] outline-none text-sm" />
-                        <button className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--brand-primary)] hover:text-white transition-colors p-2">
-                          <MessageSquare size={16} />
-                        </button>
+                        {/* Input Area */}
+                        <div className="p-4 border-t border-white/10 bg-black/40 shrink-0">
+                          <div className="relative">
+                            <input type="text" placeholder="Type a note or message..." className="w-full bg-black/50 border border-white/20 text-white pl-4 pr-12 py-3 rounded-xl focus:border-[var(--brand-primary)] outline-none text-sm" />
+                            <button className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--brand-primary)] hover:text-white transition-colors p-2">
+                              <MessageSquare size={16} />
+                            </button>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
+                         {documents.length === 0 ? (
+                           <div className="text-center p-10 text-gray-500 font-bold uppercase tracking-widest text-xs border border-dashed border-gray-700 rounded-xl">
+                             No generated documents found.
+                           </div>
+                         ) : (
+                           documents.map(doc => (
+                             <div key={doc.id} className="bg-white/5 border border-white/10 p-4 rounded-xl flex items-center justify-between hover:bg-white/10 transition-colors">
+                               <div>
+                                 <h4 className="text-sm font-bold text-white mb-1 flex items-center gap-2">
+                                   <FileText size={14} className={doc.type === 'PSA' ? 'text-[#D4AF37]' : 'text-[#10b981]'} /> {doc.title}
+                                 </h4>
+                                 <p className="text-[10px] text-gray-400 uppercase tracking-widest">
+                                   {doc.type} • {new Date(doc.createdAt).toLocaleString()}
+                                 </p>
+                               </div>
+                               <button 
+                                 className="w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-gray-400 hover:text-white border border-white/10 hover:border-white/30 transition-all"
+                                 title="Download/View (Payload recorded)"
+                               >
+                                 <Download size={14} />
+                               </button>
+                             </div>
+                           ))
+                         )}
                       </div>
-                    </div>
+                    )}
                   </div>
 
                   {/* COLUMN 3: Transaction (Active Opportunities) */}
@@ -170,7 +224,6 @@ export default function ContactDetails({ params }) {
                 </div>
               </div>
             )}
-
           </div>
         </main>
       </div>

@@ -24,32 +24,35 @@ model User {
 }
 
 model Workspace {
-  id          String      @id @default(uuid())
-  name        String
-  ownerId     String
-  owner       User        @relation(fields: [ownerId], references: [id])
-  contacts    Contact[]
-  pipelines   Pipeline[]
-  leads       Lead[]
-  integrations Integration[]
-  externalIds ExternalIdMap[]
-  createdAt   DateTime    @default(now())
+  id                String              @id @default(uuid())
+  name              String
+  ownerId           String
+  owner             User                @relation(fields: [ownerId], references: [id])
+  contacts          Contact[]
+  pipelines         Pipeline[]
+  leads             Lead[]
+  integrations      Integration[]
+  externalIds       ExternalIdMap[]
+  documentTemplates DocumentTemplate[]
+  generatedDocs     GeneratedDocument[]
+  createdAt         DateTime            @default(now())
 }
 
 model Contact {
-  id          String      @id @default(uuid())
-  workspaceId String
-  workspace   Workspace   @relation(fields: [workspaceId], references: [id])
-  firstName   String
-  lastName    String?
-  phone       String?
-  email       String?
-  notes       String?
-  leads       Lead[]      // A contact can have multiple deals/leads over time
-  activities  Activity[]  // New Relation: Tracks chronological history
-  externalIds ExternalIdMap[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id            String              @id @default(uuid())
+  workspaceId   String
+  workspace     Workspace           @relation(fields: [workspaceId], references: [id])
+  firstName     String
+  lastName      String?
+  phone         String?
+  email         String?
+  notes         String?
+  leads         Lead[]
+  activities    Activity[]
+  externalIds   ExternalIdMap[]
+  generatedDocs GeneratedDocument[]
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
 }
 
 model Pipeline {
@@ -156,5 +159,28 @@ model WebhookEvent {
   endpoint    String?
   payload     String    // JSON string of the payload
   status      String    // 'SUCCESS', 'FAILED'
+  createdAt   DateTime  @default(now())
+}
+
+model DocumentTemplate {
+  id          String    @id @default(uuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name        String
+  type        String
+  content     String
+  isActive    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+}
+
+model GeneratedDocument {
+  id          String    @id @default(uuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  contactId   String
+  contact     Contact   @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  type        String
+  title       String
+  payload     String
   createdAt   DateTime  @default(now())
 }
