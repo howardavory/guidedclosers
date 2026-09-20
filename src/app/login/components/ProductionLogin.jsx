@@ -85,7 +85,7 @@ export default function ProductionLogin() {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="e.g. howardavory617"
+              placeholder="e.g. jsmith"
               maxLength={15}
               className="w-full bg-[var(--bg-base)] border border-[var(--card-border)] text-[var(--text-base)] p-3 rounded-lg focus:outline-none focus:border-[#D4AF37] transition-colors"
               required
