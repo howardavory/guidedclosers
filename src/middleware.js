@@ -1,32 +1,34 @@
 import { NextResponse } from 'next/server';
-import { jwtVerify } from 'jose'; // Next.js Edge runtime requires 'jose' for JWT operations, not jsonwebtoken
+import { jwtVerify } from 'jose';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'super-secret-local-dev-key');
 
 export async function middleware(req) {
   const { pathname } = req.nextUrl;
   
-  // Define strict RBAC protected paths
-  const adminOnlyPaths = ['/settings/billing', '/settings/team', '/dashboard/analytics'];
-  const managerAndAbovePaths = ['/dashboard/reports'];
-  
-  const isAdminPath = adminOnlyPaths.some(p => pathname.startsWith(p));
-  const isManagerPath = managerAndAbovePaths.some(p => pathname.startsWith(p));
+  // 1. Check if the path is broadly protected
+  const isProtectedPath = pathname.startsWith('/dashboard') || pathname.startsWith('/settings');
 
-  // If path is protected, verify token
-  if (isAdminPath || isManagerPath) {
+  if (isProtectedPath) {
     const token = req.cookies.get('auth_token')?.value;
 
+    // 2. Global Security Wall: Redirect to login if no token
     if (!token) {
       return NextResponse.redirect(new URL('/login', req.url));
     }
 
     try {
-      // In Edge runtime, we use `jose` to verify JWTs
+      // 3. Verify JWT
       const { payload } = await jwtVerify(token, JWT_SECRET);
       const role = payload.role;
 
-      // Access checks
+      // 4. Role-Based Access Control (RBAC) boundaries
+      const adminOnlyPaths = ['/settings/billing', '/settings/team', '/dashboard/analytics'];
+      const managerAndAbovePaths = ['/dashboard/reports'];
+      
+      const isAdminPath = adminOnlyPaths.some(p => pathname.startsWith(p));
+      const isManagerPath = managerAndAbovePaths.some(p => pathname.startsWith(p));
+
       if (isAdminPath && role !== 'ADMIN') {
         return NextResponse.redirect(new URL('/unauthorized', req.url));
       }
@@ -36,8 +38,10 @@ export async function middleware(req) {
       }
 
     } catch (err) {
-      // Token invalid or expired
-      return NextResponse.redirect(new URL('/login', req.url));
+      // Invalid or expired token triggers security wall bounce
+      const response = NextResponse.redirect(new URL('/login', req.url));
+      response.cookies.delete('auth_token'); // Clear the bad cookie
+      return response;
     }
   }
 
@@ -46,7 +50,7 @@ export async function middleware(req) {
 
 export const config = {
   matcher: [
-    '/settings/:path*',
     '/dashboard/:path*',
+    '/settings/:path*',
   ],
 };

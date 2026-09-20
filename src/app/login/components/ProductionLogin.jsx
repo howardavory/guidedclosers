@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import useStore from '@/store/useStore';
-import { ShieldAlert, Users, LayoutDashboard, KeyRound } from 'lucide-react';
+import { KeyRound, ShieldAlert } from 'lucide-react';
 import { productionLogin, verify2FA } from '@/actions/auth';
 
 export default function ProductionLogin() {
@@ -11,7 +11,7 @@ export default function ProductionLogin() {
   const updateUserRole = useStore((state) => state.updateUserRole);
   const setCurrentUser = useStore((state) => state.setCurrentUser);
   
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   
@@ -24,7 +24,7 @@ export default function ProductionLogin() {
     setError('');
     
     try {
-      const res = await productionLogin(email, password);
+      const res = await productionLogin(username, password);
       
       if (res.require2FA) {
         setNeeds2FA(true);
@@ -65,37 +65,41 @@ export default function ProductionLogin() {
   };
 
   return (
-    <div className="bg-gradient-to-br from-[#1E1E1E] via-[#111111] to-[#080808] border border-gray-800 shadow-2xl rounded-2xl p-10 max-w-md w-full relative z-10 flex flex-col gap-6">
+    <div className="bg-[var(--card-bg)] border border-[var(--card-border)] shadow-2xl rounded-2xl p-10 max-w-md w-full relative z-10 flex flex-col gap-6">
       <div className="text-center mb-6">
-        <h1 className="text-white font-bold text-3xl tracking-wide uppercase mb-2">System Login</h1>
-        <p className="text-gray-400 text-xs uppercase tracking-widest font-semibold">Authorized Personnel Only</p>
+        <h1 className="text-[var(--text-base)] font-bold text-3xl tracking-wide uppercase mb-2">System Login</h1>
+        <p className="text-[var(--text-muted)] text-xs uppercase tracking-widest font-semibold">Authorized Personnel Only</p>
       </div>
 
       {error && (
-        <div className="bg-red-900/30 border border-red-500/50 text-red-400 p-3 rounded-lg text-sm text-center">
-          {error}
+        <div className="bg-red-900/30 border border-red-500/50 text-red-400 p-3 rounded-lg text-sm text-center flex items-center justify-center gap-2">
+          <ShieldAlert size={16} /> {error}
         </div>
       )}
 
       {!needs2FA ? (
         <form onSubmit={handleLogin} className="flex flex-col gap-4">
           <div>
-            <label className="block text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Email</label>
+            <label className="block text-[10px] text-[var(--text-muted)] uppercase tracking-widest font-bold mb-1">Username</label>
             <input 
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-black border border-gray-800 text-white p-3 rounded-lg focus:outline-none focus:border-[#D4AF37] transition-colors"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="e.g. howardavory617"
+              maxLength={15}
+              className="w-full bg-[var(--bg-base)] border border-[var(--card-border)] text-[var(--text-base)] p-3 rounded-lg focus:outline-none focus:border-[#D4AF37] transition-colors"
               required
             />
           </div>
           <div>
-            <label className="block text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Password</label>
+            <label className="block text-[10px] text-[var(--text-muted)] uppercase tracking-widest font-bold mb-1">Password</label>
             <input 
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-black border border-gray-800 text-white p-3 rounded-lg focus:outline-none focus:border-[#D4AF37] transition-colors"
+              minLength={5}
+              maxLength={17}
+              className="w-full bg-[var(--bg-base)] border border-[var(--card-border)] text-[var(--text-base)] p-3 rounded-lg focus:outline-none focus:border-[#D4AF37] transition-colors"
               required
             />
           </div>
@@ -110,13 +114,13 @@ export default function ProductionLogin() {
       ) : (
         <form onSubmit={handle2FASubmit} className="flex flex-col gap-4">
           <div>
-            <label className="block text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">2FA Code</label>
+            <label className="block text-[10px] text-[var(--text-muted)] uppercase tracking-widest font-bold mb-1">2FA Code</label>
             <input 
               type="text"
               value={code2FA}
               onChange={(e) => setCode2FA(e.target.value)}
               placeholder="000000"
-              className="w-full bg-black border border-gray-800 text-white p-3 rounded-lg text-center text-2xl tracking-[0.5em] focus:outline-none focus:border-[#D4AF37] transition-colors"
+              className="w-full bg-[var(--bg-base)] border border-[var(--card-border)] text-[var(--text-base)] p-3 rounded-lg text-center text-2xl tracking-[0.5em] focus:outline-none focus:border-[#D4AF37] transition-colors"
               required
               maxLength={6}
             />

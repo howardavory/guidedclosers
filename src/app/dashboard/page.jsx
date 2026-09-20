@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import clsx from 'clsx';
 import useStore from '@/store/useStore';
 import ManagerDashboard from '@/components/dashboard/ManagerDashboard';
-import Pipeline from '@/components/dashboard/Pipeline';
-import CallScript from '@/components/script/CallScript';
 import Sidebar from '@/components/dashboard/Sidebar';
+import NativePipeline from '@/components/dashboard/NativePipeline';
+import CallScript from '@/components/script/CallScript';
 export default function DashboardPage() {
   const router = useRouter();
   // ---------------------------------------------------
@@ -117,36 +117,88 @@ export default function DashboardPage() {
         <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
         
         <main className="flex flex-col h-screen overflow-hidden relative bg-transparent">
-          <header className="flex items-center justify-between w-full pb-4 mb-6 border-b border-[var(--brand-primary)]/20 px-6 shrink-0 z-10 mt-6">
-              {/* Clean, unconstrained portal target spanning 100% width */}
-              <div id="hud-portal-target" className="w-full flex items-center justify-between gap-4 min-w-0">
-                
-                {!activeLead && (
-                  <>
-                    <div className="flex flex-col items-center justify-center px-6 py-2 /70 backdrop-blur-md rounded-2xl shadow-sm border border-white/40">
-                      <span className="text-[10px] font-semibold text-[var(--text-muted)]  tracking-widest mb-0.5">Leads Triaged</span>
-                      <span className="text-2xl font-bold text-gray-800">{dashboardStats?.totalContacts || 0}</span>
-                    </div>
-                    <div className="flex flex-col items-center justify-center px-6 py-2 /70 backdrop-blur-md rounded-2xl shadow-sm border border-white/40">
-                      <span className="text-[10px] font-semibold text-[var(--text-muted)]  tracking-widest mb-0.5">Offers Submitted</span>
-                      <span className="text-2xl font-bold text-gray-800">{dashboardStats?.offersSubmitted || 0}</span>
-                    </div>
-                    <div className="flex flex-col items-center justify-center px-6 py-2 /70 backdrop-blur-md rounded-2xl shadow-sm border border-white/40">
-                      <span className="text-[10px] font-semibold text-[var(--text-muted)]  tracking-widest mb-0.5">Contracts Sent</span>
-                      <span className="text-2xl font-bold text-gray-800">{dashboardStats?.contractsSent || 0}</span>
-                    </div>
-                    <div className="flex flex-col items-center justify-center px-6 py-2 /70 backdrop-blur-md rounded-2xl shadow-sm border border-white/40">
-                      <span className="text-[10px] font-semibold text-[var(--text-muted)]  tracking-widest mb-0.5">Projected Fees</span>
-                      <span className="text-2xl font-bold text-[var(--brand-primary)]">${(dashboardStats?.projectedFees || 0).toLocaleString()}</span>
-                    </div>
-                  </>
-                )}
-              </div>
-          </header>
-
-          <div className="flex-1 overflow-y-auto px-6 hide-scrollbar relative">
+          {/* Main Scrollable Area */}
+          <div className="flex-1 overflow-y-auto px-6 py-8 hide-scrollbar relative space-y-8">
+            
             {!activeLead ? (
-              <Pipeline onLeadSelect={(lead) => setActiveLead(lead)} />
+              <>
+                {/* 1. COMMAND CENTER (Tasks + KPIs) */}
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                  
+                  {/* LEFT: Tasks Ledger (xl:col-span-2) */}
+                  <div className="xl:col-span-2 bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl flex flex-col h-[400px] shadow-2xl overflow-hidden">
+                    <div className="p-5 border-b border-white/10 flex justify-between items-center bg-black/20">
+                      <div className="flex items-center gap-3">
+                        <h3 className="text-white font-black uppercase tracking-widest text-sm">Tasks Ledger</h3>
+                        <span className="bg-[#D4AF37]/20 text-[#D4AF37] text-[10px] font-bold px-2 py-0.5 rounded-full">8 Pending</span>
+                      </div>
+                      <div className="flex gap-2 text-xs font-bold text-gray-500 uppercase tracking-widest">
+                        <button className="hover:text-white transition-colors">Pending</button>
+                        <span className="text-white/20">|</span>
+                        <button className="text-red-400 hover:text-red-300 transition-colors">Overdue</button>
+                      </div>
+                    </div>
+                    
+                    {/* Task List (Scrollable) */}
+                    <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
+                      {/* MOCK TASK ITEM */}
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <div key={i} className="flex items-start gap-4 p-3 hover:bg-white/5 rounded-xl transition-colors border-b border-white/5 last:border-0 group cursor-pointer">
+                          <input type="checkbox" className="mt-1 w-4 h-4 accent-[#D4AF37] bg-black border-white/20 rounded cursor-pointer" />
+                          <div className="flex-1">
+                            <h4 className="text-white text-sm font-bold">Cold One Page Cash Offer Follow Up</h4>
+                            <div className="flex items-center gap-3 mt-1">
+                              <span className="text-red-400 text-[10px] font-bold uppercase tracking-widest bg-red-400/10 px-2 py-0.5 rounded-md">Overdue - 1/5/2026</span>
+                              <span className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Assignee: Unassigned</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* RIGHT: KPI Matrix */}
+                  <div className="xl:col-span-1 grid grid-cols-2 gap-4 h-[400px] overflow-y-auto hide-scrollbar">
+                    
+                    {/* KPI Card Template */}
+                    <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex flex-col justify-center hover:border-[#D4AF37]/50 transition-colors group">
+                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 group-hover:text-white transition-colors">Unread Convos</span>
+                      <span className="text-2xl font-black text-white">{dashboardStats?.unreadConvos || 0}</span>
+                    </div>
+
+                    <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex flex-col justify-center hover:border-[#D4AF37]/50 transition-colors group">
+                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 group-hover:text-white transition-colors">Total Call Time</span>
+                      <span className="text-2xl font-black text-[#D4AF37]">{dashboardStats?.totalCallTime || '0m 0s'}</span>
+                    </div>
+
+                    <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex flex-col justify-center hover:border-[#D4AF37]/50 transition-colors group">
+                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 group-hover:text-white transition-colors">Total Calls Placed</span>
+                      <span className="text-2xl font-black text-white">{dashboardStats?.totalCallsPlaced || 0}</span>
+                    </div>
+
+                    <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex flex-col justify-center hover:border-[#D4AF37]/50 transition-colors group">
+                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 group-hover:text-white transition-colors">Appointments</span>
+                      <span className="text-2xl font-black text-white">{dashboardStats?.appointments || 0}</span>
+                    </div>
+                    
+                    <div className="col-span-2 bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex flex-col justify-center hover:border-[#D4AF37]/50 transition-colors group">
+                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 group-hover:text-white transition-colors">Avg Call Duration</span>
+                      <span className="text-2xl font-black text-white">{dashboardStats?.avgCallDuration || '0s'}</span>
+                      <span className="text-[10px] text-[#D4AF37] mt-1">Avory Howard</span>
+                    </div>
+
+                  </div>
+                </div>
+
+                {/* 2. THE PIPELINE */}
+                <div className="pt-4">
+                   <div className="flex items-center gap-2 mb-4">
+                     <h2 className="text-white font-black uppercase tracking-widest text-lg">Active Pipeline</h2>
+                     <div className="h-px bg-white/10 flex-1 ml-4"></div>
+                   </div>
+                   <NativePipeline onLeadSelect={(lead) => setActiveLead(lead)} />
+                </div>
+              </>
             ) : (
               <CallScript activeLead={activeLead} isSidebarOpen={isSidebarOpen} onReturn={(dispo) => {
                 if (dispo) console.log('Disposition:', dispo);

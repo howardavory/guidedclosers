@@ -5,6 +5,9 @@ import { FileText, Loader2, CheckCircle2 } from 'lucide-react';
 import clsx from 'clsx';
 import useStore from '@/store/useStore';
 import { generateContract } from '@/lib/apiUtils';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import PurchaseAgreementPDF from './PurchaseAgreementPDF';
+import AssignmentAgreementPDF from './AssignmentAgreementPDF';
 
 export default function TearSheet({ onClose, formData: passedFormData, activeLead: passedActiveLead }) {
   const store = useStore();
@@ -455,31 +458,37 @@ ${formData?.solarSystem ? `• Solar: ${formData.solarSystem} ${formData.solarSy
               />
             </div>
             
-            {/* Modal Footer */}
-            <div className="p-6 bg-[var(--card-bg)] border-t-4 border-[var(--card-border)] shrink-0 flex justify-end gap-4">
+            {/* Modal Footer (Document Hub) */}
+            <div className="p-6 bg-[var(--card-bg)] border-t-4 border-[var(--card-border)] shrink-0 flex flex-wrap justify-end items-center gap-4">
               <button 
                 onClick={() => setShowModal(false)}
-                className="px-6 py-3 font-semibold tracking-wide text-xl tracking-widest uppercase transition-all border border-[var(--card-border)] bg-gradient-to-br from-[#1E1E1E] via-[#111111] to-[#080808] border border-[var(--brand-primary)]/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1),0_15px_35px_rgba(0,0,0,0.9)] rounded-2xl p-6 text-[var(--text-base)] hover:bg-[var(--card-bg)] text-[var(--text-base)] shadow-md hover:-translate-y-0.5"
+                className="px-4 py-2 font-bold tracking-widest uppercase transition-all bg-[var(--bg-base)] border border-[var(--card-border)] rounded-xl text-[var(--text-base)] hover:bg-[#111]"
               >
                 CLOSE
               </button>
+
               <button 
                 onClick={handleCopy}
-                className={clsx(
-                  "px-8 py-3 font-semibold tracking-wide text-2xl tracking-widest uppercase transition-all border border-[var(--card-border)] shadow-md hover:shadow-md hover:-translate-y-0.5 flex items-center gap-2",
-                  copied ? "bg-[var(--brand-primary)] text-[var(--text-base)]" : "bg-gradient-to-br from-[#1E1E1E] via-[#111111] to-[#080808] border border-[var(--brand-primary)]/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1),0_15px_35px_rgba(0,0,0,0.9)] rounded-2xl p-6 text-[var(--text-base)]/60 hover:bg-gradient-to-br from-[#1E1E1E] via-[#111111] to-[#080808] border border-[var(--brand-primary)]/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1),0_15px_35px_rgba(0,0,0,0.9)] rounded-2xl p-6 text-[var(--text-base)]/60 text-[var(--text-base)]"
-                )}
+                className="px-4 py-2 font-bold tracking-widest uppercase transition-all bg-[var(--bg-base)] border border-[var(--card-border)] rounded-xl text-[var(--text-base)] hover:bg-[#111] flex items-center gap-2"
               >
-                {copied ? (
-                  <>
-                    <CheckCircle2 size={24} /> COPIED!
-                  </>
-                ) : (
-                  <>
-                    📋 COPY TO CLIPBOARD
-                  </>
-                )}
+                {copied ? <CheckCircle2 size={16} /> : "📋 COPY TEAR-SHEET"}
               </button>
+
+              <PDFDownloadLink
+                document={<PurchaseAgreementPDF formData={formData} />}
+                fileName={`PSA_${(formData.legalName || 'Contract').replace(/\s+/g, '_')}.pdf`}
+                className="px-6 py-2 bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] text-black font-black text-sm tracking-widest uppercase rounded-xl shadow-lg hover:scale-105 transition-transform"
+              >
+                {({ loading }) => loading ? 'GENERATING...' : '⬇ PSA PDF'}
+              </PDFDownloadLink>
+
+              <PDFDownloadLink
+                document={<AssignmentAgreementPDF formData={formData} assignmentFee={masterLead?.financialEngine?.assignmentFee || 30000} />}
+                fileName={`ASSIGNMENT_${(formData.manualAddress || 'Contract').replace(/\s+/g, '_')}.pdf`}
+                className="px-6 py-2 bg-gradient-to-r from-[#10b981] to-[#059669] text-black font-black text-sm tracking-widest uppercase rounded-xl shadow-lg hover:scale-105 transition-transform"
+              >
+                {({ loading }) => loading ? 'GENERATING...' : '⬇ ASSIGNMENT PDF'}
+              </PDFDownloadLink>
             </div>
           </div>
         </div>

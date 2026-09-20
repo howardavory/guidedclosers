@@ -3,12 +3,16 @@
 import React, { useState, useEffect } from 'react';
 import useStore from '@/store/useStore';
 import { useRouter } from 'next/navigation';
-import { User, Building, Users, Link2, Shield, Bell, Camera, Save, ArrowLeft, Smartphone, Monitor, Globe, Mail, X, Activity, MessageSquare, Database, Server } from 'lucide-react';
+import { User, Building, Users, Link2, Shield, Bell, Camera, Save, ArrowLeft, Smartphone, Monitor, Globe, Mail, X, Activity, MessageSquare, Database, Server, Map, Phone, PhoneCall, DollarSign } from 'lucide-react';
 import clsx from 'clsx';
 
 export default function SettingsPage() {
   const router = useRouter();
   const { currentUser, currentCompany, setCurrentUser, setCurrentCompany, theme, setTheme } = useStore();
+
+  const role = currentUser?.role || 'Setter';
+  const isExecutive = ['ADMIN', 'MANAGER'].includes(role?.toUpperCase());
+  const [activeTab, setActiveTab] = useState('profile');
 
   // Local state for forms
   const [profileData, setProfileData] = useState({
@@ -66,12 +70,23 @@ export default function SettingsPage() {
     }
   }, [currentCompany]);
 
-  const [integrationsForm, setIntegrationsForm] = useState(currentCompany?.integrations || {});
+  const [integrationsForm, setIntegrationsForm] = useState({});
+
+  // 1. Fetch integrations on mount
   useEffect(() => {
-    if (currentCompany?.integrations) {
-      setIntegrationsForm(currentCompany.integrations);
-    }
-  }, [currentCompany?.integrations]);
+    const fetchIntegrations = async () => {
+      try {
+        const res = await fetch('/api/settings/integrations');
+        if (res.ok) {
+          const data = await res.json();
+          setIntegrationsForm(prev => ({ ...prev, ...data }));
+        }
+      } catch (err) {
+        console.error('Failed to load integrations', err);
+      }
+    };
+    if (activeTab === 'integrations' && isExecutive) fetchIntegrations();
+  }, [activeTab, isExecutive]);
 
   const [notificationsData, setNotificationsData] = useState({
     smsAlerts: true,
@@ -101,16 +116,25 @@ export default function SettingsPage() {
     alert("Workspace White-Label Settings Saved!");
   };
 
-  const handleSaveIntegrations = () => {
-    setCurrentCompany({ integrations: integrationsForm });
-    alert("Saved Successfully!");
+  // 2. The Save Handler
+  const handleSaveIntegrations = async () => {
+    try {
+      const res = await fetch('/api/settings/integrations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(integrationsForm)
+      });
+      if (res.ok) {
+        alert('✅ API Keys successfully encrypted and saved.');
+      } else {
+        alert('🚨 Failed to save API keys.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Network error while saving.');
+    }
   };
   
-  const role = currentUser?.role || 'Setter';
-  const isAdmin = role === 'Manager' || role === 'Admin';
-
-  const [activeTab, setActiveTab] = useState('profile');
-
   const allTabs = [
     { id: 'profile', label: 'My Profile', icon: User, roles: ['Setter', 'Closer', 'Manager', 'Admin'], group: 'Personal' },
     { id: 'notifications', label: 'Notifications', icon: Bell, roles: ['Setter', 'Closer', 'Manager', 'Admin'], group: 'Personal' },
@@ -120,7 +144,7 @@ export default function SettingsPage() {
     { id: 'billing', label: 'Billing & Security', icon: Shield, roles: ['Manager', 'Admin'], group: 'Enterprise' }
   ];
 
-  const visibleTabs = allTabs.filter(tab => tab.roles.includes(role));
+  const visibleTabs = allTabs.filter(tab => tab.roles.map(r => r.toUpperCase()).includes(role?.toUpperCase()));
 
   return (
     <div className="flex-1 flex flex-col h-full bg-[var(--bg-base)] p-6 lg:p-10 overflow-hidden relative">
@@ -139,7 +163,7 @@ export default function SettingsPage() {
             <h1 className="text-3xl font-black text-[#FFFFFF] tracking-widest uppercase">System Settings</h1>
           </div>
           <p className="text-[var(--text-muted)] text-sm font-bold tracking-wider ml-[52px]">
-            {isAdmin ? `Managing Workspace: ${currentCompany?.name || 'Loading...'}` : `Managing Profile: ${currentUser?.firstName || 'User'}`}
+            {isExecutive ? `Managing Workspace: ${currentCompany?.name || 'Loading...'}` : `Managing Profile: ${currentUser?.firstName || 'User'}`}
           </p>
         </div>
       </div>
@@ -390,7 +414,7 @@ export default function SettingsPage() {
           )}
 
           {/* ===================== WORKSPACE ===================== */}
-          {activeTab === 'workspace' && isAdmin && (
+          {activeTab === 'workspace' && isExecutive && (
             <div className="animate-fade-in text-[var(--text-base)] max-w-3xl">
               
               <div className="flex items-center justify-between border-b border-[var(--card-border)] pb-4 mb-8">
@@ -524,7 +548,7 @@ export default function SettingsPage() {
           )}
 
           {/* ===================== TEAM & ROLES ===================== */}
-          {activeTab === 'team' && isAdmin && (
+          {activeTab === 'team' && isExecutive && (
             <div className="animate-fade-in text-[var(--text-base)] max-w-4xl relative">
               
               <div className="flex items-center justify-between border-b border-[var(--card-border)] pb-4 mb-8">
@@ -649,7 +673,7 @@ export default function SettingsPage() {
           )}
 
           {/* ===================== API INTEGRATIONS ===================== */}
-          {activeTab === 'integrations' && isAdmin && (
+          {activeTab === 'integrations' && isExecutive && (
             <div className="animate-fade-in text-[var(--text-base)] max-w-4xl">
               
               <div className="flex items-center justify-between border-b border-[var(--card-border)] pb-4 mb-8">
@@ -770,6 +794,138 @@ export default function SettingsPage() {
                 </div>
               </div>
 
+              {/* PropStream Integration */}
+              <div className="bg-[var(--card-bg)] shadow-sm/50 p-6 rounded-xl border border-[var(--brand-secondary)] mb-6 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-1 h-full bg-[#E84E1B]"></div>
+                <div className="flex items-center justify-between border-b border-[var(--brand-secondary)] pb-4 mb-5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded bg-[var(--card-bg)] border border-[var(--card-border)] flex items-center justify-center">
+                      <Map size={16} className="text-[#E84E1B]" />
+                    </div>
+                    <div>
+                      <h3 className="text-[#FFFFFF] font-black text-sm tracking-widest uppercase">PropStream</h3>
+                      <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-widest">Comp & Property Data</p>
+                    </div>
+                  </div>
+                  <span className="text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-widest px-2 py-1 bg-[#333333]/50 rounded border border-[var(--card-border)]">Disconnected</span>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-[var(--brand-primary)] font-extrabold text-[9px] uppercase tracking-widest">API Key</label>
+                  <input type="password" value={integrationsForm.propStreamKey || ''} onChange={(e) => setIntegrationsForm({...integrationsForm, propStreamKey: e.target.value})} placeholder="ps_live_xxxxxxxxxxxxxxxx" className="bg-[var(--bg-base)] border border-[var(--brand-secondary)] rounded-lg p-3 text-[var(--text-base)] text-sm font-semibold focus:border-[var(--brand-primary)] outline-none transition-colors font-mono" />
+                </div>
+              </div>
+
+              {/* InvestorLift Integration */}
+              <div className="bg-[var(--card-bg)] shadow-sm/50 p-6 rounded-xl border border-[var(--brand-secondary)] mb-6 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-1 h-full bg-[#0052FF]"></div>
+                <div className="flex items-center justify-between border-b border-[var(--brand-secondary)] pb-4 mb-5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded bg-[var(--card-bg)] border border-[var(--card-border)] flex items-center justify-center">
+                      <Building size={16} className="text-[#0052FF]" />
+                    </div>
+                    <div>
+                      <h3 className="text-[#FFFFFF] font-black text-sm tracking-widest uppercase">InvestorLift</h3>
+                      <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-widest">Dispo & Cash Buyer Sync</p>
+                    </div>
+                  </div>
+                  <span className="text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-widest px-2 py-1 bg-[#333333]/50 rounded border border-[var(--card-border)]">Disconnected</span>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-[var(--brand-primary)] font-extrabold text-[9px] uppercase tracking-widest">API Key</label>
+                  <input type="password" value={integrationsForm.investorLiftKey || ''} onChange={(e) => setIntegrationsForm({...integrationsForm, investorLiftKey: e.target.value})} placeholder="il_live_xxxxxxxxxxxxxxxx" className="bg-[var(--bg-base)] border border-[var(--brand-secondary)] rounded-lg p-3 text-[var(--text-base)] text-sm font-semibold focus:border-[var(--brand-primary)] outline-none transition-colors font-mono" />
+                </div>
+              </div>
+
+              {/* Follow Up Boss Integration */}
+              <div className="bg-[var(--card-bg)] shadow-sm/50 p-6 rounded-xl border border-[var(--brand-secondary)] mb-6 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-1 h-full bg-[#3B82F6]"></div>
+                <div className="flex items-center justify-between border-b border-[var(--brand-secondary)] pb-4 mb-5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded bg-[var(--card-bg)] border border-[var(--card-border)] flex items-center justify-center">
+                      <Users size={16} className="text-[#3B82F6]" />
+                    </div>
+                    <div>
+                      <h3 className="text-[#FFFFFF] font-black text-sm tracking-widest uppercase">Follow Up Boss</h3>
+                      <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-widest">Retail Agent Routing</p>
+                    </div>
+                  </div>
+                  <span className="text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-widest px-2 py-1 bg-[#333333]/50 rounded border border-[var(--card-border)]">Disconnected</span>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-[var(--brand-primary)] font-extrabold text-[9px] uppercase tracking-widest">API Key</label>
+                  <input type="password" value={integrationsForm.fubKey || ''} onChange={(e) => setIntegrationsForm({...integrationsForm, fubKey: e.target.value})} placeholder="fka_xxxxxxxxxxxxxxxxxxxx" className="bg-[var(--bg-base)] border border-[var(--brand-secondary)] rounded-lg p-3 text-[var(--text-base)] text-sm font-semibold focus:border-[var(--brand-primary)] outline-none transition-colors font-mono" />
+                </div>
+              </div>
+
+              {/* SmrtPhone Integration */}
+              <div className="bg-[var(--card-bg)] shadow-sm/50 p-6 rounded-xl border border-[var(--brand-secondary)] mb-6 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-1 h-full bg-[#10B981]"></div>
+                <div className="flex items-center justify-between border-b border-[var(--brand-secondary)] pb-4 mb-5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded bg-[var(--card-bg)] border border-[var(--card-border)] flex items-center justify-center">
+                      <Phone size={16} className="text-[#10B981]" />
+                    </div>
+                    <div>
+                      <h3 className="text-[#FFFFFF] font-black text-sm tracking-widest uppercase">SmrtPhone</h3>
+                      <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-widest">Call Metrics & Dialer</p>
+                    </div>
+                  </div>
+                  <span className="text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-widest px-2 py-1 bg-[#333333]/50 rounded border border-[var(--card-border)]">Disconnected</span>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-[var(--brand-primary)] font-extrabold text-[9px] uppercase tracking-widest">API Key</label>
+                  <input type="password" value={integrationsForm.smrtPhoneKey || ''} onChange={(e) => setIntegrationsForm({...integrationsForm, smrtPhoneKey: e.target.value})} placeholder="smrt_xxxxxxxxxxxxxxxx" className="bg-[var(--bg-base)] border border-[var(--brand-secondary)] rounded-lg p-3 text-[var(--text-base)] text-sm font-semibold focus:border-[var(--brand-primary)] outline-none transition-colors font-mono" />
+                </div>
+              </div>
+
+              {/* CallTools Integration */}
+              <div className="bg-[var(--card-bg)] shadow-sm/50 p-6 rounded-xl border border-[var(--brand-secondary)] mb-6 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-1 h-full bg-[#8B5CF6]"></div>
+                <div className="flex items-center justify-between border-b border-[var(--brand-secondary)] pb-4 mb-5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded bg-[var(--card-bg)] border border-[var(--card-border)] flex items-center justify-center">
+                      <PhoneCall size={16} className="text-[#8B5CF6]" />
+                    </div>
+                    <div>
+                      <h3 className="text-[#FFFFFF] font-black text-sm tracking-widest uppercase">CallTools</h3>
+                      <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-widest">Predictive Dialer Sync</p>
+                    </div>
+                  </div>
+                  <span className="text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-widest px-2 py-1 bg-[#333333]/50 rounded border border-[var(--card-border)]">Disconnected</span>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-[var(--brand-primary)] font-extrabold text-[9px] uppercase tracking-widest">API Key</label>
+                  <input type="password" value={integrationsForm.callToolsKey || ''} onChange={(e) => setIntegrationsForm({...integrationsForm, callToolsKey: e.target.value})} placeholder="ct_xxxxxxxxxxxxxxxx" className="bg-[var(--bg-base)] border border-[var(--brand-secondary)] rounded-lg p-3 text-[var(--text-base)] text-sm font-semibold focus:border-[var(--brand-primary)] outline-none transition-colors font-mono" />
+                </div>
+              </div>
+
+              {/* QuickBooks Integration */}
+              <div className="bg-[var(--card-bg)] shadow-sm/50 p-6 rounded-xl border border-[var(--brand-secondary)] mb-6 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-1 h-full bg-[#2CA01C]"></div>
+                <div className="flex items-center justify-between border-b border-[var(--brand-secondary)] pb-4 mb-5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded bg-[var(--card-bg)] border border-[var(--card-border)] flex items-center justify-center">
+                      <DollarSign size={16} className="text-[#2CA01C]" />
+                    </div>
+                    <div>
+                      <h3 className="text-[#FFFFFF] font-black text-sm tracking-widest uppercase">QuickBooks Online</h3>
+                      <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-widest">Financial Ledger & Invoicing</p>
+                    </div>
+                  </div>
+                  <span className="text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-widest px-2 py-1 bg-[#333333]/50 rounded border border-[var(--card-border)]">Disconnected</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[var(--brand-primary)] font-extrabold text-[9px] uppercase tracking-widest">Client ID</label>
+                    <input type="password" value={integrationsForm.quickBooksClientId || ''} onChange={(e) => setIntegrationsForm({...integrationsForm, quickBooksClientId: e.target.value})} placeholder="ABxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" className="bg-[var(--bg-base)] border border-[var(--brand-secondary)] rounded-lg p-3 text-[var(--text-base)] text-sm font-semibold focus:border-[var(--brand-primary)] outline-none transition-colors font-mono" />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[var(--brand-primary)] font-extrabold text-[9px] uppercase tracking-widest">Client Secret</label>
+                    <input type="password" value={integrationsForm.quickBooksClientSecret || ''} onChange={(e) => setIntegrationsForm({...integrationsForm, quickBooksClientSecret: e.target.value})} placeholder="••••••••••••••••••••••••••••••••" className="bg-[var(--bg-base)] border border-[var(--brand-secondary)] rounded-lg p-3 text-[var(--text-base)] text-sm font-semibold focus:border-[var(--brand-primary)] outline-none transition-colors font-mono" />
+                  </div>
+                </div>
+              </div>
+
               {/* Custom Webhook Out */}
               <div className="bg-[var(--card-bg)] shadow-sm/50 p-6 rounded-xl border border-[var(--brand-secondary)] relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-1 h-full bg-[var(--brand-primary)]"></div>
@@ -803,7 +959,7 @@ export default function SettingsPage() {
           )}
 
           {/* ===================== BILLING & SECURITY ===================== */}
-          {activeTab === 'billing' && isAdmin && (
+          {activeTab === 'billing' && isExecutive && (
             <div className="animate-fade-in text-[var(--text-base)] max-w-4xl">
               <div className="flex items-center justify-between border-b border-[var(--card-border)] pb-4 mb-8">
                 <div>

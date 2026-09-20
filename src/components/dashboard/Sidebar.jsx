@@ -1,5 +1,5 @@
 'use client';
-import { Home, BarChart2, Settings, LogOut, Calculator, FileText, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Home, Users, BarChart2, Settings, LogOut, Calculator, FileText, ChevronLeft, ChevronRight } from 'lucide-react';
 import useStore from '@/store/useStore';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -12,7 +12,7 @@ export default function Sidebar({ isSidebarOpen = true, setIsSidebarOpen, }) {
   const currentUser = useStore((state) => state.currentUser);
   const setActiveGlobalDrawer = useStore((state) => state.setActiveGlobalDrawer);
   
-  const role = currentUser?.role || 'Setter';
+  const role = currentUser?.role || 'SETTER';
 
   const toggleSidebar = () => {
     if (setIsSidebarOpen) {
@@ -23,11 +23,12 @@ export default function Sidebar({ isSidebarOpen = true, setIsSidebarOpen, }) {
   // Define nav items with strict access control tags
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: Home, roles: ['Setter', 'Closer', 'Manager', 'Admin'] },
+    { name: 'Contacts', path: '/dashboard/contacts', icon: Users, roles: ['Setter', 'Closer', 'Manager', 'Admin'] },
     { name: 'Tear-Sheet', onClick: () => setActiveGlobalDrawer('tearsheet'), icon: FileText, roles: ['Setter', 'Closer', 'Manager', 'Admin'] },
     // Executive Only Tabs
     { name: 'Analytics', path: '/analytics', icon: BarChart2, roles: ['Manager', 'Admin'] },
     { name: 'Settings', path: '/settings', icon: Settings, roles: ['Setter', 'Closer', 'Manager', 'Admin'] },
-  ].filter(item => item.roles.includes(role)); // INSTANT SECURITY FILTER
+  ].filter(item => item.roles.some(r => r.toUpperCase() === role.toUpperCase())); // INSTANT SECURITY FILTER
 
   return (
     <aside className="sticky top-0 left-0 h-screen bg-black/40 backdrop-blur-md border-r border-[var(--brand-primary)]/20 shadow-[4px_0_24px_rgba(0,0,0,0.02)] flex flex-col pt-8 pb-4 z-50 w-full overflow-hidden transition-all duration-300">

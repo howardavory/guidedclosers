@@ -1,12 +1,13 @@
-import TestTerminal from './components/TestTerminal';
+import { checkUserCount } from '@/actions/auth';
+import BootstrapAdmin from './components/BootstrapAdmin';
 import ProductionLogin from './components/ProductionLogin';
 
-export default function LoginPage() {
-  const isDevelopment = process.env.NODE_ENV === 'development';
+export default async function LoginPage() {
+  const userCount = await checkUserCount();
 
   return (
     <div className="min-h-screen bg-[var(--bg-base)] flex items-center justify-center p-4 relative overflow-hidden">
-      {isDevelopment ? <TestTerminal /> : <ProductionLogin />}
+      {userCount === 0 ? <BootstrapAdmin /> : <ProductionLogin />}
     </div>
   );
 }

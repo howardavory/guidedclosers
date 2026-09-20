@@ -13,7 +13,7 @@ import RepairsCalculator from '../calculators/RepairsCalculator';
 import SessionArchive from '../dashboard/SessionArchive';
 import { useLoadScript, Autocomplete } from '@react-google-maps/api';
 import { getRandomWisdomCard, getRandomWisdomCards } from '@/lib/faithWisdom';
-
+import { useAutoUnderwriter } from '@/hooks/useAutoUnderwriter';
 const libraries = ['places'];
 
 // 1. MUST BE DEFINED OUTSIDE CallScript TO PREVENT REACT FLICKERING
@@ -84,7 +84,6 @@ export default function CallScript({ activeLead, onReturn, onFormUpdate, isSideb
   const setActiveGlobalDrawer = useStore(state => state.setActiveGlobalDrawer);
 
   const { updateTriageCondition, updatePropertyDetails, updateDisposition, masterLead } = useStore();
-  const totalMAO = masterLead?.financialEngine?.mao || 0;
   
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
@@ -226,6 +225,37 @@ export default function CallScript({ activeLead, onReturn, onFormUpdate, isSideb
   const [recentMessages, setRecentMessages] = useState([]);
   const [activeObjection, setActiveObjection] = useState(null);
 
+  // Rehydrate on Mount
+  useEffect(() => {
+    if (activeLead?.scriptData) {
+      try {
+        const parsed = typeof activeLead.scriptData === 'string' ? JSON.parse(activeLead.scriptData) : activeLead.scriptData;
+        setFormData(prev => ({ ...prev, ...parsed }));
+      } catch (err) {
+        console.error('Failed to parse scriptData:', err);
+      }
+    }
+  }, [activeLead?.id, activeLead?.scriptData]);
+
+  // Debounced Auto-Save
+  useEffect(() => {
+    if (!activeLead?.id) return;
+
+    const autoSaveTimer = setTimeout(async () => {
+      try {
+        await fetch(`/api/leads/${activeLead.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scriptData: JSON.stringify(formData) })
+        });
+      } catch (err) {
+        console.error('Auto-save failed:', err);
+      }
+    }, 1500); // 1.5 second debounce
+
+    return () => clearTimeout(autoSaveTimer);
+  }, [formData, activeLead?.id]);
+
   // Recovered missing state and derived variables
   const [showSummaryReview, setShowSummaryReview] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -234,6 +264,32 @@ export default function CallScript({ activeLead, onReturn, onFormUpdate, isSideb
   
   const leadName = activeLead?.name || 'the owner';
   const dataCompleteness = formData;
+  
+  // REPLACE STATIC MAO WITH DYNAMIC HOOK
+  const { totalRehab, calculatedMAO: totalMAO } = useAutoUnderwriter(formData);
+
+  // AUTO-FETCH CONTEXT ON MOUNT
+  const [propertyContext, setPropertyContext] = useState(null);
+  
+  useEffect(() => {
+    const fetchContext = async () => {
+      const address = formData.manualAddress || activeLead?.address;
+      if (!address) return;
+      
+      try {
+        const res = await fetch(`/api/property/context?address=${encodeURIComponent(address)}`);
+        const data = await res.json();
+        if (data.success) {
+          setPropertyContext(data.data);
+          if (!formData.arv) updateForm('arv', data.data.estimatedArv);
+        }
+      } catch (err) {
+        console.error("Context fetch failed", err);
+      }
+    };
+    
+    fetchContext();
+  }, [activeLead?.address]);
   // 1. Safe parsing of Asking Price
   const parsedAskingPrice = useMemo(() => {
     if (!formData.askingPrice) return 0;
@@ -757,6 +813,20 @@ export default function CallScript({ activeLead, onReturn, onFormUpdate, isSideb
                   </div>
                 </div>
               </div>
+              
+              {/* NEW: STREET VIEW INJECTION */}
+              {propertyContext?.streetViewUrl && (
+                <div className="mt-4 w-full h-48 rounded-xl overflow-hidden border border-[var(--card-border)] relative">
+                  <div className="absolute top-2 left-2 bg-black/70 backdrop-blur-md border border-white/20 text-white text-[10px] font-bold px-3 py-1 rounded-full z-10 flex items-center gap-2">
+                    <MapPin size={12} className="text-[#00E5FF]" /> Live Street View
+                  </div>
+                  <img 
+                    src={propertyContext.streetViewUrl} 
+                    alt="Property Street View" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
             </div>
 
             <hr className="border-t border-gray-100" />

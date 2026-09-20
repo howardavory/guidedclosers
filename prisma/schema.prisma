@@ -8,16 +8,98 @@ generator client {
 }
 
 model User {
-  id                 String    @id @default(uuid())
-  email              String    @unique
+  id                 String      @id @default(uuid())
+  email              String      @unique
+  username           String      @unique
   passwordHash       String
-  role               String    // Enforced in app logic: 'ADMIN', 'MANAGER', 'CLOSER', 'SETTER'
+  role               String      // Enforced in app logic: 'ADMIN', 'MANAGER', 'CLOSER', 'SETTER'
   firstName          String?
   lastName           String?
   twoFactorSecret    String?
-  isTwoFactorEnabled Boolean   @default(false)
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+  isTwoFactorEnabled Boolean     @default(false)
+  stripeCustomerId   String?     @unique
+  workspaces         Workspace[]
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+}
+
+model Workspace {
+  id          String      @id @default(uuid())
+  name        String
+  ownerId     String
+  owner       User        @relation(fields: [ownerId], references: [id])
+  contacts    Contact[]
+  pipelines   Pipeline[]
+  leads       Lead[]
+  integrations Integration[]
+  externalIds ExternalIdMap[]
+  createdAt   DateTime    @default(now())
+}
+
+model Contact {
+  id          String      @id @default(uuid())
+  workspaceId String
+  workspace   Workspace   @relation(fields: [workspaceId], references: [id])
+  firstName   String
+  lastName    String?
+  phone       String?
+  email       String?
+  notes       String?
+  leads       Lead[]      // A contact can have multiple deals/leads over time
+  activities  Activity[]  // New Relation: Tracks chronological history
+  externalIds ExternalIdMap[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Pipeline {
+  id          String      @id @default(uuid())
+  workspaceId String
+  workspace   Workspace   @relation(fields: [workspaceId], references: [id])
+  name        String      // e.g., "Wholesale Pipeline", "Novation Pipeline"
+  stages      Stage[]
+  createdAt   DateTime    @default(now())
+}
+
+model Stage {
+  id          String      @id @default(uuid())
+  pipelineId  String
+  pipeline    Pipeline    @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  name        String      // e.g., "New Leads", "Contacted"
+  color       String      // e.g., "bg-blue-500/10 border-blue-500/30 text-blue-400"
+  order       Int         // Controls the drag-and-drop column sequence
+  leads       Lead[]
+}
+
+model Lead {
+  id              String    @id @default(uuid())
+  workspaceId     String
+  workspace       Workspace @relation(fields: [workspaceId], references: [id])
+  contactId       String
+  contact         Contact   @relation(fields: [contactId], references: [id])
+  stageId         String
+  stage           Stage     @relation(fields: [stageId], references: [id])
+  motivationScore Int       @default(5)
+  scriptData      String?
+  property        Property?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Property {
+  id            String   @id @default(uuid())
+  leadId        String   @unique
+  lead          Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  address       String
+  city          String?
+  state         String?
+  zip           String?
+  arv           Float?
+  askingPrice   Float?
+  mao           Float?
+  distressFlags String?  // Stored as JSON stringified array or comma-separated
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Invitation {
@@ -28,4 +110,51 @@ model Invitation {
   expiresAt DateTime
   createdAt DateTime @default(now())
   isUsed    Boolean  @default(false)
+}
+
+model Activity {
+  id          String   @id @default(uuid())
+  contactId   String
+  contact     Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  type        String   // e.g., 'NOTE', 'MESSAGE', 'STATUS_CHANGE', 'CALL'
+  content     String
+  createdAt   DateTime @default(now())
+}
+
+model Integration {
+  id          String    @id @default(uuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  provider    String    // 'GHL', 'TWILIO', 'BATCHLEADS', 'DOCUSIGN', 'WEBHOOK'
+  apiKey      String?
+  apiSecret   String?
+  metadata    String?   // JSON string for extra fields like agencyKey, webhookUrl
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([workspaceId, provider])
+}
+
+model ExternalIdMap {
+  id          String    @id @default(uuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  contactId   String?
+  contact     Contact?  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  provider    String    // 'GHL', 'TWILIO'
+  externalId  String    // The ID in the external system
+  lastSynced  DateTime  @default(now())
+
+  @@unique([workspaceId, provider, externalId])
+}
+
+model WebhookEvent {
+  id          String    @id @default(uuid())
+  workspaceId String
+  provider    String    // 'GHL', 'OUTBOUND_ZAPIER'
+  endpoint    String?
+  payload     String    // JSON string of the payload
+  status      String    // 'SUCCESS', 'FAILED'
+  createdAt   DateTime  @default(now())
 }
