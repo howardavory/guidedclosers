@@ -3,16 +3,14 @@ frontend:
   phases:
     preBuild:
       commands:
-        # Nuke the cached Prisma binaries before installing
         - rm -rf node_modules/.prisma
         - rm -rf node_modules/@prisma/client
         - npm ci
     build:
       commands:
-        # Force AWS Console variables into the Next.js production runtime
-        - echo "DATABASE_URL=$DATABASE_URL" >> .env.production
-        # Generate the fresh PostgreSQL client
+        - echo "DATABASE_URL=$DATABASE_URL" >> .env
         - npx prisma generate
+        - npx prisma db push --accept-data-loss
         - npm run build
   artifacts:
     baseDirectory: .next
