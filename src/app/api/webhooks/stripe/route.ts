@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import crypto from 'crypto';
@@ -8,7 +8,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_dummy', {
   apiVersion: '2026-08-26.dahlia',
 });
 
-const prisma = new PrismaClient();
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
 export async function POST(req: Request) {

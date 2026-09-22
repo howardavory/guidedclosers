@@ -1,9 +1,8 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 
-const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-local-dev-key';
 
 async function getCurrentUserId() {
