@@ -79,22 +79,25 @@ export default function LandingPage() {
         {/* Authority Eyebrow */}
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 mb-8 backdrop-blur-sm">
           <span className="flex h-2 w-2 rounded-full bg-[#D4AF37] animate-pulse"></span>
-          <span className="text-xs font-bold text-gray-300 uppercase tracking-widest">The AI-Powered Real Estate Operating System</span>
+          <span className="text-xs font-bold text-[#D4AF37] uppercase tracking-widest">The AI-Powered Real Estate Integration Hub</span>
         </div>
         
         {/* Direct, Concrete Headline */}
         <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 leading-[1.1] max-w-5xl text-white">
-          The Complete Operating System For <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB]">Direct-To-Seller Acquisitions.</span>
+          The Central Command Hub For <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB]">Direct-To-Seller Acquisitions.</span>
         </h1>
         
         {/* Outcome-Driven Subcopy */}
         <p className="text-gray-400 text-lg md:text-xl max-w-3xl mb-10 leading-relaxed mx-auto">
-          All the tools you need to pull data, overcome objections, and lock up contracts without paying massive wholesale fees. Capture, nurture, and close—all in one unified workspace.
+          Stop fighting with scattered software. Family Legacy is the unified house for your entire real estate stack—seamlessly integrating GoHighLevel, DocuSign, and your data providers alongside our proprietary dynamic scripts and inline rehab calculators.
         </p>
 
         {/* Dual CTA */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 w-full sm:w-auto">
-          <button className="w-full sm:w-auto bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] text-black font-black uppercase tracking-widest px-8 py-4 rounded-xl hover:scale-105 transition-transform shadow-[0_0_30px_rgba(212,175,55,0.3)]">
+          <button 
+            onClick={() => setIsModalOpen(true)} 
+            className="w-full sm:w-auto bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] text-black font-black uppercase tracking-widest px-8 py-4 rounded-xl hover:scale-105 transition-transform shadow-[0_0_30px_rgba(212,175,55,0.3)]"
+          >
             Start 14-Day Free Trial
           </button>
           <button className="w-full sm:w-auto bg-black/50 backdrop-blur-md border border-white/20 text-white font-bold uppercase tracking-widest px-8 py-4 rounded-xl hover:bg-white/10 transition-colors flex items-center justify-center gap-2">
@@ -102,15 +105,17 @@ export default function LandingPage() {
           </button>
         </div>
 
-        {/* TRUST BADGE ROW (Borrows Authority) */}
-        <div className="flex flex-col items-center justify-center gap-5 mb-24 w-full border-y border-white/5 py-8 bg-black/20 backdrop-blur-sm">
-          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Engineered to replace your scattered toolstack</p>
-          <div className="flex flex-wrap justify-center gap-8 md:gap-16 items-center opacity-40 grayscale hover:grayscale-0 transition-all duration-500">
-            {/* These are text placeholders that act like logos for now */}
+        {/* INTEGRATION ECOSYSTEM BANNER */}
+        <div className="flex flex-col items-center justify-center gap-5 mb-24 w-full border-y border-white/5 py-8 bg-black/20 backdrop-blur-sm relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#D4AF37]/5 to-transparent pointer-events-none" />
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest relative z-10">Orchestrating Your Favorite Tools in One Dashboard</p>
+          <div className="flex flex-wrap justify-center gap-8 md:gap-16 items-center opacity-40 grayscale hover:grayscale-0 transition-all duration-500 relative z-10">
+            {/* Text placeholders acting as temporary logos */}
             <span className="font-black text-xl tracking-tighter text-white">GO<span className="text-blue-500">HIGHLEVEL</span></span>
             <span className="font-black text-xl tracking-tighter text-white">BATCH<span className="text-red-500">LEADS</span></span>
             <span className="font-black text-xl tracking-tighter text-white">PROP<span className="text-green-500">STREAM</span></span>
             <span className="font-black text-xl tracking-tighter text-white">DOCU<span className="text-yellow-500">SIGN</span></span>
+            <span className="font-black text-xl tracking-tighter text-white">ZAPIER</span>
           </div>
         </div>
 
