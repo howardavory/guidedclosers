@@ -79,10 +79,34 @@ export async function productionLogin(usernameOrEmail, password) {
         }
         
         // Ensure workspace exists
-        const workspace = await prisma.workspace.findFirst({ where: { ownerId: adminUser.id } });
+        let workspace = await prisma.workspace.findFirst({ where: { ownerId: adminUser.id } });
         if (!workspace) {
-          await prisma.workspace.create({
-            data: { name: 'Howard Workspace', ownerId: adminUser.id }
+          workspace = await prisma.workspace.create({
+            data: { 
+              name: 'Howard Workspace', 
+              ownerId: adminUser.id
+            }
+          });
+        }
+        
+        // Ensure default pipeline exists
+        const pipelineCount = await prisma.pipeline.count({ where: { workspaceId: workspace.id } });
+        if (pipelineCount === 0) {
+          await prisma.pipeline.create({
+            data: {
+              name: 'Wholesale Pipeline',
+              workspaceId: workspace.id,
+              stages: {
+                create: [
+                  { name: 'New Leads', color: 'bg-blue-500/10 border-blue-500/30 text-blue-400', order: 0 },
+                  { name: 'Contacted', color: 'bg-purple-500/10 border-purple-500/30 text-purple-400', order: 1 },
+                  { name: 'Appointments', color: 'bg-orange-500/10 border-orange-500/30 text-orange-400', order: 2 },
+                  { name: 'Offers Out', color: 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400', order: 3 },
+                  { name: 'Under Contract', color: 'bg-green-500/10 border-green-500/30 text-green-400', order: 4 },
+                  { name: 'Dispositions', color: 'bg-[#D4AF37]/10 border-[#D4AF37]/30 text-[#D4AF37]', order: 5 }
+                ]
+              }
+            }
           });
         }
       } catch (provErr) {
